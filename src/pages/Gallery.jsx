@@ -1,16 +1,21 @@
 /* GALLERY PAGES (/weddings, /events): every clip for one Cloudinary tag, played in the popup */
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { goTo } from '../lib/motion';
 import { reduce } from '../lib/env';
 import { listClips } from '../lib/cld';
 import { SubNav } from '../components/Nav';
 import { useVideo } from '../components/VideoModal';
+import { useContent } from '../lib/content';
+import { toClip } from '../lib/videos';
 
 const PLAY = <span className="clip__play" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z" /></svg></span>;
 
 export default function Gallery({ tag, title, kind = '' }) {
   const { open } = useVideo();
-  const [items, setItems] = useState(null);                 // null while the list loads
+  const { videos } = useContent();
+  const [fetched, setFetched] = useState(null);             // straight from Cloudinary, until the panel takes over
+  // the clips Elazar approved for this page, in his order; before the panel, everything tagged
+  const items = useMemo(() => (videos ? (videos[tag] || []).map(toClip) : fetched), [videos, tag, fetched]);
   const gridRef = useRef(null);
 
   useEffect(() => {
@@ -21,11 +26,12 @@ export default function Gallery({ tag, title, kind = '' }) {
   }, [title]);
 
   useEffect(() => {
+    if (videos) return;
     let alive = true;
-    setItems(null);
-    listClips(tag).then(list => { if (alive) setItems(list); });
+    setFetched(null);
+    listClips(tag).then(list => { if (alive) setFetched(list); });
     return () => { alive = false; };
-  }, [tag]);
+  }, [tag, videos]);
 
   // cards rise in row by row, each row in reading order
   useEffect(() => {
@@ -80,7 +86,7 @@ export default function Gallery({ tag, title, kind = '' }) {
               );
             })}
         </ul>
-        {items && !items.length && <p className="gallery__empty">הסרטונים לא נטענו כרגע. נסו לרענן את העמוד.</p>}
+        {items && !items.length && <p className="gallery__empty">{videos ? 'עוד אין כאן סרטונים.' : 'הסרטונים לא נטענו כרגע. נסו לרענן את העמוד.'}</p>}
       </main>
     </>
   );

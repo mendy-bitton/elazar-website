@@ -1,32 +1,29 @@
 /* MUSIC: a shelf of album cases. The active one is pulled out and turned to show its cover;
    clicking the cover plays the song in the popup. */
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { beat, reduce, $ } from '../lib/env';
 import { scope } from '../lib/scope';
 import { stageLights } from '../lib/stageLights';
 import { ui } from '../lib/ui';
 import { useVideo } from '../components/VideoModal';
 import { useContent } from '../lib/content';
+import { DEFAULT_SONGS, songVisual, toSong } from '../lib/videos';
 
-const SONGS = [
-  { id: 'emjirOPaBeU', he: 'מי אדיר', meta: 'סינגל חופה', focus: '50%', tint: '#8fa7c4' },
-  { id: 'oSjW7A4DzdQ', he: 'דע', meta: 'סינגל', focus: '58%', tint: '#b98a4a' },
-  { id: 'HixvdiyhRfg', he: 'ניגון מויטבסק', meta: 'סינגל', focus: '100%', tint: '#b23a3a' },
-  { id: 'voHqIOp5ly4', he: 'מחרוזת רפאנו', meta: 'מחרוזת', focus: '50%', tint: '#8b8a5a' },
-  { id: 'eFRqLDcXvmE', he: 'והיא שעמדה', meta: 'סינגל', focus: '46%', tint: '#6a4a8a' },
-  { id: 'S1AgF-cnA6o', he: 'ביצוע שופט', meta: 'הופעה חיה, הקול החדש בדרכים · עם מענדי גדסי', focus: '52%', tint: '#3a5fa0' }
-];
-const N = SONGS.length;
 const thumb = id => `https://i.ytimg.com/vi/${id}/maxresdefault.jpg`;
 const ARROW = <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 7 7 17M7 9.5V17h7.5" /></svg>;
 
 export default function Music() {
   const ref = useRef(null);
   const { open } = useVideo();
-  const { texts } = useContent();
+  const { texts, videos } = useContent();
+  // the songs Elazar placed on the shelf, in his order; the built list until the panel takes over
+  const songs = useMemo(() => (videos ? videos.music.map(toSong) : DEFAULT_SONGS.map((s, i) => ({ ...s, ...songVisual(s.id, i) }))), [videos]);
+  const songsKey = songs.map(s => s.id).join(',');
 
   useEffect(() => {
     const sec = ref.current;
+    if (!sec) return;
+    const SONGS = songs, N = songs.length;
     const s = scope();
     const shelf = $('.music__shelf', sec);
     const stage = $('.music__stage', sec);
@@ -59,7 +56,7 @@ export default function Music() {
     s.on(window, 'resize', measure);
 
     // ---------- state ----------
-    const START = 1;
+    const START = Math.min(1, N - 1);               // open on the second song (or the only one)
     let sPos = START, T = START, active = -1, dragging = false;
     let tiltX = 0, tiltY = 0, visible = false, inView = false;
     const ptr = { x: 0, y: 0, in: false };
@@ -200,8 +197,10 @@ export default function Music() {
     });
 
     return () => { s.dispose(); masks.forEach(m => m.replaceChildren()); };
-  }, [open]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, songsKey]);
 
+  if (!songs.length) return null;               // nothing on the shelf: the section stays out of the page
   return (
     <section className="music" id="music" aria-label="המוזיקה שלי" ref={ref}>
       <canvas className="music__lights" aria-hidden="true" />
@@ -217,7 +216,7 @@ export default function Music() {
 
       <div className="music__shelf" aria-label="מדף השירים">
         <div className="music__stage">
-          {SONGS.map(song => {
+          {songs.map(song => {
             const img = `url(${thumb(song.id)})`;
             return (
               <button key={song.id} type="button" className="case" aria-label={`${song.he}, ${song.meta}`} data-cursor="mic">
@@ -241,7 +240,7 @@ export default function Music() {
 
       <button className="music__arrow music__arrow--prev" type="button" aria-label="השיר הקודם"><svg viewBox="0 0 18 10" aria-hidden="true"><path d="M13 1l4 4-4 4M17 5H1" /></svg></button>
       <button className="music__arrow music__arrow--next" type="button" aria-label="השיר הבא"><svg viewBox="0 0 18 10" aria-hidden="true"><path d="M5 1L1 5l4 4M1 5h16" /></svg></button>
-      <div className="music__count" dir="ltr"><span className="music__idx">01</span> / <span className="music__total">{String(N).padStart(2, '0')}</span></div>
+      <div className="music__count" dir="ltr"><span className="music__idx">01</span> / <span className="music__total">{String(songs.length).padStart(2, '0')}</span></div>
     </section>
   );
 }

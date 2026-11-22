@@ -24,13 +24,19 @@ function parse(r) {
   return { kind, title, meta: parts.join(' · '), credit };
 }
 
+// one clip, from its Cloudinary resource ({ public_id, version, format }), ready for the site
+export const clipFrom = r => ({ id: r.public_id, ...parse(r), r, thumb: w => thumb(r, w), src: video(r), orig: original(r) });
+
+// the raw resources tagged weddings / events; fresh=true skips the browser cache (the admin scan)
+export function listResources(tag, { fresh = false } = {}) {
+  const url = `${HOST}list/${encodeURIComponent(tag)}.json${fresh ? `?t=${Date.now()}` : ''}`;
+  return fetch(url, fresh ? { cache: 'no-store' } : undefined)
+    .then(res => (res.ok ? res.json() : { resources: [] }))
+    .then(d => d.resources || []);
+}
+
 const cache = {};
 export function listClips(tag) {
-  if (!cache[tag]) {
-    cache[tag] = fetch(`${HOST}list/${encodeURIComponent(tag)}.json`)
-      .then(res => (res.ok ? res.json() : { resources: [] }))
-      .then(d => (d.resources || []).map(r => ({ id: r.public_id, ...parse(r), r, thumb: w => thumb(r, w), src: video(r), orig: original(r) })))
-      .catch(() => []);
-  }
+  if (!cache[tag]) cache[tag] = listResources(tag).then(rs => rs.map(clipFrom)).catch(() => []);
   return cache[tag];
 }

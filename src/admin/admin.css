@@ -108,7 +108,74 @@
 }
 .adm-toast.is-on { opacity: 1; translate: -50% 0 }
 
+/* ---------- videos: scan bar, dashboard ---------- */
+.adm-scan { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 4px 0 18px }
+.adm-scan .adm-btn svg { width: 18px; height: 18px }
+.adm-spin { animation: adm-spin 1s linear infinite }
+@keyframes adm-spin { to { rotate: 360deg } }
+.adm-inline { margin: 0 }
+.adm-stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px }
+.adm-stat {
+  display: grid; justify-items: start; gap: 2px; padding: 16px 16px 14px; border-radius: 14px; text-align: right; font: inherit; color: var(--text); cursor: pointer;
+  background: rgba(255, 255, 255, .03); border: 1px solid rgba(255, 255, 255, .09); transition: border-color .25s, background-color .25s;
+}
+.adm-stat:hover { border-color: var(--gold-2) }
+.adm-stat--static { cursor: default }
+.adm-stat--static:hover { border-color: rgba(255, 255, 255, .09) }
+.adm-stat.is-hot { border-color: var(--gold-2); background: color-mix(in srgb, var(--gold-2) 12%, transparent) }
+.adm-stat__icon { width: 22px; height: 22px; color: var(--gold-2); margin-bottom: 6px }
+.adm-stat__num { font-size: 34px; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums }
+.adm-stat__num--sm { font-size: 24px }
+.adm-stat__label { font-size: 14px; color: var(--text-2) }
+.adm-stat__area { font-size: 12.5px; color: var(--text-3) }
+
+/* ---------- videos: the two lists ---------- */
+.adm-tabs--sub { margin-bottom: 14px }
+.adm-tabs--sub .adm-tab { height: 38px; padding: 0 16px; font-size: 14.5px }
+.adm-tab__n { display: inline-grid; place-items: center; min-width: 22px; height: 22px; margin-inline-start: 6px; padding: 0 6px; border-radius: 999px; font-size: 12px; background: rgba(255, 255, 255, .12) }
+.adm-tab.is-on .adm-tab__n { background: rgba(10, 11, 14, .18) }
+.vgrid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start }
+.vside { display: grid; gap: 10px }
+.vzone { border-radius: 14px; padding: 10px; background: rgba(255, 255, 255, .02); border: 1px dashed rgba(255, 255, 255, .12); transition: border-color .2s, background-color .2s }
+.vzone.is-over { border-color: var(--gold-2); background: color-mix(in srgb, var(--gold-2) 7%, transparent) }
+.vzone__head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; padding: 2px 4px 10px }
+.vzone__title { font-weight: 700 }
+.vzone__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; min-height: 64px }
+.vzone__empty { padding: 18px 10px; text-align: center; font-size: 14px; color: var(--text-3) }
+.vrow {
+  display: flex; align-items: center; gap: 10px; padding: 7px 8px; border-radius: 12px;
+  background: #121318; border: 1px solid rgba(255, 255, 255, .08); touch-action: manipulation;
+}
+.vrow.is-overlay { box-shadow: 0 18px 40px -12px rgba(0, 0, 0, .8); border-color: var(--gold-2); cursor: grabbing }
+.vrow.is-gone { opacity: .6 }
+.vrow__grip { flex: none; display: grid; place-items: center; width: 30px; height: 40px; border: 0; border-radius: 8px; background: none; color: var(--text-3); cursor: grab; touch-action: none }
+.vrow__grip:hover { color: var(--text); background: rgba(255, 255, 255, .06) }
+.vrow__grip svg { width: 20px; height: 20px }
+.vrow__num { flex: none; width: 20px; text-align: center; font-size: 13px; font-weight: 700; color: var(--gold-2); font-variant-numeric: tabular-nums }
+.vrow__thumb { flex: none; width: 52px; height: 52px; border-radius: 8px; object-fit: cover; background: #1c1d22 }
+.vrow__text { flex: 1; min-width: 0; display: grid; gap: 2px }
+.vrow__title { font-size: 15px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+.vrow__sub { font-size: 12.5px; color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+.vrow__tag { flex: none; padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 700; background: var(--gold); color: var(--on-gold) }
+.vrow__tag--gone { background: #4a1f1a; color: #ffb4a6 }
+.vrow__btn { flex: none; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 999px; border: 1px solid rgba(255, 255, 255, .14); background: none; color: var(--text-2); cursor: pointer; transition: border-color .2s, color .2s, background-color .2s }
+.vrow__btn:hover { border-color: var(--gold-2); color: var(--text) }
+.vrow__btn--move:hover { background: var(--gold); color: var(--on-gold); border-color: transparent }
+.vrow__btn svg { width: 17px; height: 17px }
+.vtools { display: flex; gap: 8px; flex-wrap: wrap; align-items: center }
+.vsearch { position: relative; flex: 1 1 180px }
+.vsearch svg { position: absolute; top: 50%; right: 12px; translate: 0 -50%; width: 18px; height: 18px; color: var(--text-3); pointer-events: none }
+.vsearch .adm-input { padding-inline-start: 38px; height: 42px }
+.vchips { display: flex; gap: 6px }
+.vchip { height: 34px; padding: 0 12px; border-radius: 999px; font: inherit; font-size: 14px; cursor: pointer; color: var(--text-2); background: none; border: 1px solid rgba(255, 255, 255, .14) }
+.vchip.is-on { color: var(--on-gold); background: var(--gold); border-color: transparent }
+.vadd { display: flex; gap: 8px }
+.vadd .adm-input { height: 42px; padding-block: 0 }
+.vadd .adm-btn svg { width: 16px; height: 16px }
+
 @media (max-width: 640px) {
+  .vgrid { grid-template-columns: 1fr }
+  .adm-stats { grid-template-columns: repeat(2, minmax(0, 1fr)) }
   .adm-grid { grid-template-columns: 1fr }
   .adm-user { flex-basis: 100%; order: 5; margin: 0 }
   .adm-popup__img { width: 100% }

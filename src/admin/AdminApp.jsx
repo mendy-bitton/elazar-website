@@ -7,6 +7,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { supabase, BUCKET } from './client';
 import { DEFAULTS, mergeContent, useContent, telHref, waHref, igHref } from '../lib/content';
+import { useLibrary, Dashboard, VideosTab } from './Videos';
 import './admin.css';
 
 export default function AdminApp() {
@@ -216,11 +217,13 @@ function MfaVerify() {
 }
 
 /* ---------- the panel ---------- */
-const TABS =[['contact', 'פרטי קשר'], ['texts', 'טקסטים'], ['popup', 'פופאפ']];
+const TABS = [['dashboard', 'דשבורד'], ['videos', 'סרטונים'], ['contact', 'פרטי קשר'], ['texts', 'טקסטים'], ['popup', 'פופאפ']];
 
 function Panel({ session }) {
   const { reload } = useContent();
-  const [tab, setTab] = useState('contact');
+  const [tab, setTab] = useState('dashboard');
+  const [videoArea, setVideoArea] = useState('music');
+  const lib = useLibrary(reload);                       // the videos; scans when the panel opens
   const [raw, setRaw] = useState(null);
   const [loadError, setLoadError] = useState('');
   const [toast, setToast] = useState('');
@@ -266,6 +269,8 @@ function Panel({ session }) {
       {loadError && <p className="adm-error" role="alert">{loadError}</p>}
       {!content ? <p className="adm-note">טוען…</p> : (
         <>
+          {tab === 'dashboard' && <Dashboard lib={lib} popup={content.popup} goVideos={area => { setVideoArea(area); setTab('videos'); }} />}
+          {tab === 'videos' && <VideosTab key={videoArea} lib={lib} notify={notify} startArea={videoArea} />}
           {tab === 'contact' && <ContactForm initial={content.contact} onSave={v => save('contact', v)} />}
           {tab === 'texts' && <TextsForm initial={content.texts} onSave={v => save('texts', v)} />}
           {tab === 'popup' && <PopupForm initial={content.popup} onSave={v => save('popup', v)} />}

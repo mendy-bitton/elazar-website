@@ -1,19 +1,12 @@
 /* MOMENTS: YouTube shorts on a pinned row; scrolling down pans it sideways (touch screens swipe) */
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { gsap, ScrollTrigger } from '../lib/motion';
 import { reduce, $, $$ } from '../lib/env';
 import { scope } from '../lib/scope';
 import { useVideo } from '../components/VideoModal';
 import { useContent } from '../lib/content';
+import { DEFAULT_SHORTS, toShort } from '../lib/videos';
 
-const SHORTS = [
-  { yt: '2en3jVyg6eg', name: 'לחי עולמים', meta: 'עם דוידי נחשון', title: 'לחי עולמים · עם דוידי נחשון' },
-  { yt: 'AWUDlcMMK4g', name: 'אנרגיות שיא', meta: 'עם לוי אוטינסקי', title: 'אנרגיות שיא · עם לוי אוטינסקי' },
-  { yt: 'Wp5a3oPxDzk', name: 'שמחת חתן וכלה', meta: 'חתונה בכפר חב״ד', title: 'שמחת חתן וכלה · כפר חב״ד' },
-  { yt: 'aIYqIRPpDTY', name: 'היי צמאה', meta: 'עם דוידי נחשון', title: 'היי צמאה · עם דוידי נחשון' },
-  { yt: 'nWLEgu0GKjQ', name: 'אמר רבי עקיבא', meta: 'עם יוסף חיים, מתוך חתונה בכפר חב״ד', title: 'אמר רבי עקיבא · עם יוסף חיים' },
-  { yt: 'dwYMi8xB1tQ', name: 'ככה מסיימים חתונה', meta: 'עם לוי אוטינסקי', title: 'ככה מסיימים חתונה · עם לוי אוטינסקי' }
-];
 const CHANNEL_SHORTS = 'https://www.youtube.com/@elazar_bitton_official/shorts';
 const ARROW = <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 7 7 17M7 9.5V17h7.5" /></svg>;
 
@@ -23,10 +16,14 @@ const fallback = img => { if (!img.dataset.fb) { img.dataset.fb = '1'; img.src =
 export default function Moments() {
   const ref = useRef(null);
   const { open } = useVideo();
-  const { texts } = useContent();
+  const { texts, videos } = useContent();
+  // the shorts Elazar placed here, in his order; the built list until the panel takes over
+  const shorts = useMemo(() => (videos ? videos.moments.map(toShort) : DEFAULT_SHORTS), [videos]);
+  const shortsKey = shorts.map(v => v.yt).join(',');
 
   useEffect(() => {
     const sec = ref.current;
+    if (!sec) return;
     const s = scope();
     const pin = $('.moments__pin', sec);
     const track = $('.moments__track', sec);
@@ -86,9 +83,13 @@ export default function Moments() {
       return () => imgs.forEach(i => { i.style.transform = ''; });
     });
 
-    return () => { s.dispose(); mm.revert(); ctx.revert(); };
-  }, []);
+    // a new list of cards changes the page's height: let every scroll animation re-measure
+    const raf = requestAnimationFrame(() => ScrollTrigger.refresh());
+    return () => { cancelAnimationFrame(raf); s.dispose(); mm.revert(); ctx.revert(); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shortsKey]);
 
+  if (!shorts.length) return null;              // nothing placed here: the section stays out of the page
   return (
     <section className="moments" id="moments" aria-label="רגעים מהשמחות" ref={ref}>
       <div className="moments__pin">
@@ -102,7 +103,7 @@ export default function Moments() {
 
         <div className="moments__viewport">
           <div className="moments__track">
-            {SHORTS.map(v => (
+            {shorts.map(v => (
               <button key={v.yt} className="mcard" type="button" data-cursor="view"
                 onClick={e => open({ yt: v.yt, title: v.title, origin: e.currentTarget.querySelector('.mcard__media') })}>
                 <span className="mcard__media">

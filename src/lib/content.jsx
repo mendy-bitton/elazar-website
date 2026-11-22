@@ -66,12 +66,28 @@ export async function fetchSettings() {
     const res = await fetch(`${SUPABASE_URL}/rest/v1/settings?select=key,value`, { headers: { apikey: SUPABASE_KEY }, signal: ctrl.signal });
     if (!res.ok) return null;
     const rows = await res.json();
-    return Object.fromEntries(rows.map(r => [r.key, r.value || {}]));
+    const out = Object.fromEntries(rows.map(r => [r.key, r.value || {}]));
+    // the approved videos, area by area, in order (missing before phase 2 is set up: then the built lists show)
+    const pl = await fetch(`${SUPABASE_URL}/rest/v1/placements?select=area,position,videos(id,source,kind,title,data,gone)&order=area.asc,position.asc`,
+      { headers: { apikey: SUPABASE_KEY }, signal: ctrl.signal }).catch(() => null);
+    if (pl && pl.ok) out.__placements = await pl.json();
+    return out;
   } catch {
     return null;
   } finally {
     clearTimeout(t);
   }
+}
+
+// once the panel has taken over the videos (its first scan), the site shows exactly what's placed;
+// until then (or if Supabase can't be reached) each section keeps its built list
+function groupVideos(raw) {
+  if (!raw.videos || !raw.videos.initialized || !Array.isArray(raw.__placements)) return null;
+  const by = { music: [], moments: [], weddings: [], events: [] };
+  for (const p of raw.__placements) {
+    if (p.videos && !p.videos.gone && by[p.area]) by[p.area].push(p.videos);
+  }
+  return by;
 }
 
 // saved values win; an emptied heading falls back to its default, while an emptied
@@ -90,7 +106,8 @@ const fill = (defaults, saved = {}, keepEmpty = () => false) => {
 export const mergeContent = (raw = {}) => ({
   texts: fill(DEFAULTS.texts, raw.texts, k => OPTIONAL_TEXTS.has(k)),
   contact: fill(DEFAULTS.contact, raw.contact, () => true),
-  popup: { ...DEFAULTS.popup, ...(raw.popup || {}) }
+  popup: { ...DEFAULTS.popup, ...(raw.popup || {}) },
+  videos: groupVideos(raw)
 });
 
 const ContentContext = createContext({ ...mergeContent(), reload: () => {} });
