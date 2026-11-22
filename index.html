@@ -15,6 +15,8 @@
      filled in from src/lib/seo.js (vite.config.js) -->
 <!-- seo:end -->
 <script>document.documentElement.classList.add('js')</script>
+<!-- the page's text for bots that don't run the site (vite.config.js): visitors never see it -->
+<style>.static-page { max-width: 760px; margin: 0 auto; padding: 24px 16px } .js .static-page { display: none }</style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -22,7 +24,7 @@
 <link rel="preload" as="image" href="/assets/silhouette.svg">
 </head>
 <body>
-<div id="root"></div>
+<div id="root"><!-- body:start --><!-- body:end --></div>
 <script type="module" src="/src/main.jsx"></script>
 </body>
 </html>

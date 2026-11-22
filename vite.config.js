@@ -2,7 +2,7 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { writeFileSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { PAGES, headHtml, adminHeadHtml, sitemapXml, robotsTxt } from './src/lib/seo.js';
+import { PAGES, headHtml, adminHeadHtml, bodyHtml, sitemapXml, robotsTxt } from './src/lib/seo.js';
 
 // on this computer, serve the Netlify function at the same address it has on Netlify,
 // so the admin panel's scan works in `npm run dev` too
@@ -29,18 +29,21 @@ const netlifyFunctionsDev = () => ({
 // read the right ones without running the site. Plus sitemap.xml and robots.txt.
 // Google Analytics goes in only on a real build, so working locally never counts as visits.
 const SEO_BLOCK = /<!-- seo:start -->[\s\S]*?<!-- seo:end -->/;
+const BODY_BLOCK = /<!-- body:start -->[\s\S]*?<!-- body:end -->/;
 const seoPages = () => {
   let build = false;
   const block = path => `<!-- seo:start -->\n${headHtml(path, { analytics: build })}\n<!-- seo:end -->`;
+  const body = path => `<!-- body:start -->${path ? bodyHtml(path) : ''}<!-- body:end -->`;
+  const page = (html, path) => html.replace(SEO_BLOCK, () => block(path)).replace(BODY_BLOCK, () => body(path));
   return {
     name: 'seo-pages',
     configResolved(config) { build = config.command === 'build'; },
-    transformIndexHtml(html) { return html.replace(SEO_BLOCK, () => block('/')); },
+    transformIndexHtml(html) { return page(html, '/'); },
     writeBundle(options) {
       const dir = options.dir;
       const html = readFileSync(join(dir, 'index.html'), 'utf8');
-      for (const p of PAGES) if (p.file !== 'index.html') writeFileSync(join(dir, p.file), html.replace(SEO_BLOCK, () => block(p.path)));
-      writeFileSync(join(dir, 'admin.html'), html.replace(SEO_BLOCK, () => `<!-- seo:start -->\n${adminHeadHtml()}\n<!-- seo:end -->`));
+      for (const p of PAGES) if (p.file !== 'index.html') writeFileSync(join(dir, p.file), page(html, p.path));
+      writeFileSync(join(dir, 'admin.html'), html.replace(SEO_BLOCK, () => `<!-- seo:start -->\n${adminHeadHtml()}\n<!-- seo:end -->`).replace(BODY_BLOCK, () => body('')));
       writeFileSync(join(dir, 'sitemap.xml'), sitemapXml());
       writeFileSync(join(dir, 'robots.txt'), robotsTxt());
       // Netlify: /weddings is served from weddings.html, /admin from admin.html (before netlify.toml's catch-all)

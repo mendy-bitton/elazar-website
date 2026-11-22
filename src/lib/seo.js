@@ -9,6 +9,8 @@
    ========================================================= */
 import site from '../../site.config.js';
 import { PLATFORMS } from './platforms.js';
+import { DEFAULT_TEXTS, DEFAULT_CONTACT, EVENT_TYPES } from './defaults.js';
+import { DEFAULT_SONGS, DEFAULT_SHORTS } from './videos.js';
 
 export const SITE_URL = site.url.replace(/\/+$/, '');
 export const SITE_NAME = 'אלעזר ביטון';
@@ -39,7 +41,7 @@ export const urlOf = path => SITE_URL + (path === '/' ? '/' : path);
 const OG_IMAGE = { url: `${SITE_URL}/og-image.jpg`, width: 1200, height: 630, alt: 'הצללית של אלעזר ביטון מול אור במה זהוב, לצד הלוגו והכיתוב זמר חתונות ואירועים' };
 
 // the contact details at build time; in the browser, the ones saved in /admin replace them
-const BUILD_CONTACT = { phone: '052.810.8100', instagram: 'elazar_bitton_official' };
+const BUILD_CONTACT = DEFAULT_CONTACT;
 const intlPhone = p => { const d = String(p || '').replace(/\D/g, ''); return d ? '+' + (d.startsWith('0') ? '972' + d.slice(1) : d) : ''; };
 const igUrl = h => { const n = String(h || '').trim().replace(/^@/, '').replace(/^https?:\/\/(www\.)?instagram\.com\//, '').replace(/\/.*$/, ''); return n ? `https://www.instagram.com/${n}/` : ''; };
 
@@ -110,6 +112,39 @@ export function headHtml(path, { analytics = false } = {}) {
     analytics && GA_ID && `<script async src="https://www.googletagmanager.com/gtag/js?id=${esc(GA_ID)}"></script>`,
     analytics && GA_ID && `<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config',${JSON.stringify(GA_ID)});</script>`
   ].filter(Boolean).join('\n');
+}
+
+/* ---------- the page's text, written into its HTML file ----------
+   For bots that read the file without running the site (ChatGPT's, Claude's, Perplexity's...):
+   the same text the page shows, as plain headings, paragraphs and links. Visitors never see it:
+   it's hidden from the first moment (index.html) and the site replaces it as soon as it starts.
+   It's the site as built (the defaults); texts Elazar changes in /admin show here after the next deploy. */
+export function bodyHtml(path) {
+  const p = pageFor(path), t = DEFAULT_TEXTS, c = DEFAULT_CONTACT;
+  const li = items => `<ul>${items.map(i => `<li>${i}</li>`).join('')}</ul>`;
+  const a = (href, text) => `<a href="${esc(href)}">${esc(text)}</a>`;
+  const nav = `<header>${a('/', SITE_NAME)}<nav aria-label="ניווט ראשי">${li([a('/', 'דף הבית'), a('/weddings', 'חתונות'), a('/events', 'אירועים'), a('/#contact', 'יצירת קשר')])}</nav></header>`;
+  const phone = intlPhone(c.phone), wa = intlPhone(c.whatsapp).slice(1), ig = igUrl(c.instagram);
+  const contact = `<section id="contact"><h2>${esc([t.ctaLine1, t.ctaLine2, t.ctaLine3].filter(Boolean).join(' '))}</h2>${li([
+    phone && `טלפון: ${a('tel:' + phone, c.phone)}`,
+    wa && `וואטסאפ: ${a('https://wa.me/' + wa, 'שלחו הודעה')}`,
+    ig && `אינסטגרם: ${a(ig, '@' + ig.split('/').filter(Boolean).pop())}`
+  ].filter(Boolean))}</section>`;
+  let main;
+  if (p.crumb) {
+    main = `<h1>${esc(p.crumb)} עם ${esc(SITE_NAME)}</h1><p>${esc(p.description)}</p>${li([a('/', 'חזרה לדף הבית'), p.path === '/weddings' ? a('/events', 'אירועים') : a('/weddings', 'חתונות')])}`;
+  } else {
+    main = [
+      `<h1>${esc(SITE_NAME)}, זמר חתונות ואירועים: ${esc(t.heroTitle1)} ${esc(t.heroTitle2)}</h1>`,
+      `<p>${esc(t.heroLead1)}</p>`, t.heroLead2 && `<p>${esc(t.heroLead2)}</p>`,
+      `<section><h2>סוגי אירועים</h2>${li(EVENT_TYPES.map(([name]) => esc(name)))}</section>`,
+      `<section><h2>${esc(t.momentsTitle)}</h2>${li(DEFAULT_SHORTS.map(s => `${a('https://www.youtube.com/shorts/' + s.yt, s.name)}${s.meta ? ' · ' + esc(s.meta) : ''}`))}</section>`,
+      `<section><h2>${esc(t.musicTitle)}</h2>${li(DEFAULT_SONGS.map(s => `${a('https://www.youtube.com/watch?v=' + s.id, s.he)}${s.meta ? ' · ' + esc(s.meta) : ''}`))}</section>`,
+      `<section><h2>להאזנה בכל פלטפורמות המוזיקה</h2>${li(PLATFORMS.map(pl => a(pl.href, pl.label)))}</section>`,
+      `<section><h2>${esc(t.reelTitle)}</h2><p>${esc(t.reelSub)}</p>${li([a('/weddings', 'סרטונים מחתונות'), a('/events', 'סרטונים מאירועים')])}</section>`
+    ].filter(Boolean).join('');
+  }
+  return `<div class="static-page">${nav}<main>${main}${contact}</main></div>`;
 }
 
 // the admin panel's own page: out of Google, and without Analytics (Elazar's visits aren't counted)

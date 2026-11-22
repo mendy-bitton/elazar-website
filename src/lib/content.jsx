@@ -6,31 +6,14 @@
    reached the site simply shows the defaults.
    ========================================================= */
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { DEFAULT_TEXTS, DEFAULT_CONTACT } from './defaults';
 
 export const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 export const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
 export const DEFAULTS = {
-  texts: {
-    heroTitle1: 'עם כל הלב,',
-    heroTitle2: 'לשמחה שלכם',
-    heroLead1: 'אני אלעזר ביטון, זמר חתונות ואירועים בסגנון חב״די וחסידי. אני מאמין שכל שמחה צריכה נשמה, ולכן אני מגיע לכל אירוע עם כל הלב.',
-    heroLead2: 'מניגוני הקבלת פנים והחופה המרגשים ועד ריקודים סוערים שלא נגמרים, אני בונה את הערב יחד אתכם, לפי הקהל, האווירה והרגע.',
-    momentsTitle: 'רגעים מהשמחות',
-    musicTitle: 'המוזיקה שלי',
-    musicSub: 'בחרו שיר מהמדף, ולחצו על העטיפה כדי להאזין.',
-    reelTitle: 'מהבמה',
-    reelSub: 'השמחה, בלי פילטרים.',
-    ctaLine1: 'חוגגים שמחה?',
-    ctaLine2: 'אירוע?',
-    ctaLine3: 'בואו נדבר.'
-  },
-  contact: {
-    phone: '052.810.8100',
-    whatsapp: '052.810.8100',
-    whatsappText: 'שלום אלעזר, אשמח לקבל הצעת מחיר לאירוע.\nתאריך: \nמקום: ',
-    instagram: 'elazar_bitton_official'
-  },
+  texts: DEFAULT_TEXTS,
+  contact: DEFAULT_CONTACT,
   popup: {
     enabled: false,
     image: '',

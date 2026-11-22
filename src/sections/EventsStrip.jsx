@@ -3,8 +3,9 @@ import { Fragment, useEffect, useRef } from 'react';
 import { gsap, getLenis } from '../lib/motion';
 import { reduce, $ } from '../lib/env';
 import { scope } from '../lib/scope';
+import { EVENT_TYPES } from '../lib/defaults';
 
-const TYPES = [['אירועים', ''], ['בר מצוות', 'o'], ['חתונות', ''], ['התוועדויות', 'o'], ['שמחות בית השואבה', ''], ['שבע ברכות', 'o']];
+const TYPES = EVENT_TYPES;
 
 function Group({ hidden }) {
   return (
