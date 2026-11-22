@@ -40,7 +40,10 @@ export const DEFAULTS = {
     linkLabel: 'לפרטים',
     startsAt: '',
     endsAt: '',
-    version: 0
+    version: 0,
+    width: 0,                 // the image's size, so its frame is ready before it loads
+    height: 0,
+    blur: ''                  // a tiny version, shown blurred while the real one loads
   }
 };
 

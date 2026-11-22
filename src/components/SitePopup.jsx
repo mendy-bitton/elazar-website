@@ -27,15 +27,40 @@ export default function SitePopup() {
   const backRef = useRef(null);
   const closeRef = useRef(null);
 
-  const eligible = popup.enabled && popup.image && inWindow(popup) && !wasSeen(popup.version);
+  const [readySrc, setReadySrc] = useState('');    // which image is downloaded and decoded (or we stopped waiting for it)
+  const [due, setDue] = useState(false);           // the intro is over and the pause after it has passed
+  const [loaded, setLoaded] = useState(false);     // the full image is painted over its blurred stand-in
+  const [failedSrc, setFailedSrc] = useState('');  // which image didn't load: then no popup at all
 
-  // wait for the opening intro, then a moment more, before showing it
+  const eligible = popup.enabled && popup.image && inWindow(popup) && !wasSeen(popup.version);
+  const framed = !!(popup.width && popup.height);  // saved with its size (and blur), so it can open before the image arrives
+  const src = popup.image;
+  const ready = !!src && readySrc === src, failed = !!src && failedSrc === src;
+
+  // start downloading the image right away, in the background, while the visitor watches the intro
   useEffect(() => {
     if (!eligible) return;
-    let t = 0;
-    const off = whenBooted(() => { t = setTimeout(() => setOpen(true), 1600); });
-    return () => { off(); clearTimeout(t); };
-  }, [eligible]);
+    let alive = true;
+    const img = new Image();
+    img.decoding = 'async';
+    img.src = src;
+    (img.decode ? img.decode() : new Promise((res, rej) => { img.onload = res; img.onerror = rej; }))
+      .then(() => { if (alive) setReadySrc(src); }, () => { if (alive) setFailedSrc(src); });
+    return () => { alive = false; };
+  }, [eligible, src]);
+
+  // it's due after the intro and a short pause; on a very slow connection a framed popup opens anyway
+  // 4 seconds later, showing the blurred stand-in until the image arrives
+  useEffect(() => {
+    if (!eligible) return;
+    let t = 0, giveUp = 0;
+    const off = whenBooted(() => {
+      t = setTimeout(() => { setDue(true); if (framed) giveUp = setTimeout(() => setReadySrc(src), 4000); }, 1600);
+    });
+    return () => { off(); clearTimeout(t); clearTimeout(giveUp); };
+  }, [eligible, framed, src]);
+
+  useEffect(() => { if (due && ready && !failed && eligible) setOpen(true); }, [due, ready, failed, eligible]);
 
   useEffect(() => {
     if (!open) return;
@@ -60,14 +85,22 @@ export default function SitePopup() {
   }
 
   if (!open) return null;
+  // the frame takes the image's exact proportions before it loads (popups saved with its size);
+  // the blurred stand-in fills it, and the real image fades in on top
+  const ar = framed ? popup.width / popup.height : 0;
+  const media = (
+    <span className={`popup__media${ar ? ' has-frame' : ''}${loaded ? ' is-loaded' : ''}`} style={ar ? { '--ar': ar } : undefined}>
+      {popup.blur && <span className="popup__blur" style={{ backgroundImage: `url(${popup.blur})` }} aria-hidden="true" />}
+      <img className="popup__img" src={popup.image} alt={popup.alt || ''} decoding="async"
+        width={popup.width || undefined} height={popup.height || undefined} onLoad={() => setLoaded(true)} />
+    </span>
+  );
   return (
     <div className="popup" ref={rootRef} role="dialog" aria-modal="true" aria-label={popup.alt || 'הודעה'}
-      onClick={e => { if (!e.target.closest('.popup__img, .popup__bar')) close(); }}>
+      onClick={e => { if (!e.target.closest('.popup__media, .popup__bar')) close(); }}>
       <div className="popup__backdrop" ref={backRef} data-cursor="link" />
       <div className="popup__card" ref={cardRef}>
-        {popup.link
-          ? <a href={popup.link} target="_blank" rel="noopener" onClick={close}><img className="popup__img" src={popup.image} alt={popup.alt || ''} /></a>
-          : <img className="popup__img" src={popup.image} alt={popup.alt || ''} />}
+        {popup.link ? <a href={popup.link} target="_blank" rel="noopener" onClick={close}>{media}</a> : media}
         <div className="popup__bar">
           {popup.link && (
             <a className="btn btn--gold" href={popup.link} target="_blank" rel="noopener" onClick={close}>

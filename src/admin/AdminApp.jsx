@@ -8,6 +8,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { supabase, BUCKET } from './client';
 import { DEFAULTS, mergeContent, useContent, telHref, waHref, igHref } from '../lib/content';
 import { useLibrary, Dashboard, VideosTab } from './Videos';
+import { prepareImage, extOf } from './image';
 import './admin.css';
 
 export default function AdminApp() {
@@ -413,13 +414,14 @@ function PopupForm({ initial, onSave }) {
     if (v.startsAt && v.endsAt && v.endsAt < v.startsAt) fail('תאריך הסיום לפני תאריך ההתחלה.');
     let next = { ...v };
     if (file) {
-      const ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
-      const path = `popup/${Date.now()}.${ext}`;
-      const { error: upErr } = await supabase.storage.from(BUCKET).upload(path, file, { cacheControl: '31536000', upsert: false, contentType: file.type });
+      // shrink and compress it first (a 3MB photo becomes a few hundred KB), measure it, and keep a tiny blurred stand-in
+      const img = await prepareImage(file);
+      const path = `popup/${Date.now()}.${extOf(img.blob.type)}`;
+      const { error: upErr } = await supabase.storage.from(BUCKET).upload(path, img.blob, { cacheControl: '31536000', upsert: false, contentType: img.blob.type });
       if (upErr) throw upErr;
       const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
       if (v.path) await supabase.storage.from(BUCKET).remove([v.path]).catch(() => {});   // the old image is no longer needed
-      next = { ...next, image: data.publicUrl, path };
+      next = { ...next, image: data.publicUrl, path, width: img.width, height: img.height, blur: img.blur };
     }
     if (showAgain || !next.version) next.version = Date.now();         // a new version is shown once more to everyone
     await onSave(next);
@@ -444,7 +446,7 @@ function PopupForm({ initial, onSave }) {
 
   const submit = () => run();
 
-  const removeImage = () => { setFile(null); set('image', ''); set('enabled', false); };
+  const removeImage = () => { setFile(null); set('image', ''); set('width', 0); set('height', 0); set('blur', ''); set('enabled', false); };
   const shown = preview || v.image;
 
   return (

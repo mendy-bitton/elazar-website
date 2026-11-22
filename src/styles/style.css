@@ -690,10 +690,20 @@ body::after {
 .popup__backdrop { position: absolute; inset: 0; background: rgba(5, 6, 8, .8); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px) }
 .popup__card { position: relative; display: flex; flex-direction: column; align-items: center; gap: 16px; max-width: min(560px, 100%) }
 .popup__card > a { display: block }
-.popup__img {
-  display: block; max-width: 100%; max-height: calc(86svh - 96px); width: auto; height: auto; object-fit: contain; border-radius: 20px;
+/* the frame: sized to the image (when its size is known) before it loads, the blurred stand-in inside it,
+   and the real image fading in on top once it's painted */
+.popup__media {
+  position: relative; display: block; overflow: hidden; max-width: 100%; border-radius: 20px; background: #0d0e12;
   box-shadow: 0 0 0 1px rgba(249, 227, 166, .18), 0 40px 120px -30px rgba(0, 0, 0, .9);
 }
+.popup__media.has-frame { width: min(560px, calc(100vw - 48px), calc((86svh - 96px) * var(--ar))); aspect-ratio: var(--ar) }
+.popup__blur { position: absolute; inset: -24px; background: center / cover no-repeat; filter: blur(18px); transform: scale(1.06) }
+.popup__img {
+  position: relative; display: block; max-width: 100%; max-height: calc(86svh - 96px); width: auto; height: auto; object-fit: contain;
+  opacity: 0; transition: opacity .6s var(--ease-out);
+}
+.popup__media.has-frame .popup__img { width: 100%; height: 100%; max-height: none }
+.popup__media.is-loaded .popup__img { opacity: 1 }
 .popup__bar { display: flex; align-items: center; justify-content: center; gap: 12px }
 
 /* =========================================================
