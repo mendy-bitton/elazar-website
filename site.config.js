@@ -6,6 +6,6 @@
    Both codes are public by design (they're visible in every page's source), so they're safe here. */
 export default {
   url: 'https://elazar-music.netlify.app',
-  gaId: '',
+  gaId: 'G-JGRZC9J2QL',
   googleVerification: ''
 };
