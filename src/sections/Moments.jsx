@@ -4,6 +4,7 @@ import { gsap, ScrollTrigger } from '../lib/motion';
 import { reduce, $, $$ } from '../lib/env';
 import { scope } from '../lib/scope';
 import { useVideo } from '../components/VideoModal';
+import { useContent } from '../lib/content';
 
 const SHORTS = [
   { yt: '2en3jVyg6eg', name: 'לחי עולמים', meta: 'עם דוידי נחשון', title: 'לחי עולמים · עם דוידי נחשון' },
@@ -22,6 +23,7 @@ const fallback = img => { if (!img.dataset.fb) { img.dataset.fb = '1'; img.src =
 export default function Moments() {
   const ref = useRef(null);
   const { open } = useVideo();
+  const { texts } = useContent();
 
   useEffect(() => {
     const sec = ref.current;
@@ -92,7 +94,7 @@ export default function Moments() {
       <div className="moments__pin">
         <div className="moments__head">
           <div>
-            <h2 className="moments__title">רגעים מהשמחות</h2>
+            <h2 className="moments__title">{texts.momentsTitle}</h2>
             <p className="moments__sub">תמשיכו לגלול, והרגעים זזים הצידה.</p>
           </div>
           <a className="moments__all" href={CHANNEL_SHORTS} target="_blank" rel="noopener"><span>לכל הסרטונים ביוטיוב</span>{ARROW}</a>

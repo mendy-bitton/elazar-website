@@ -13,4 +13,3 @@ export const beat = (t, every, offset) => {
   return Math.exp(-p * BEAT * 5.2);           // quick rise, smooth fall
 };
 
-export const WA = 'https://wa.me/972528108100?text=' + encodeURIComponent('שלום אלעזר, אשמח לקבל הצעת מחיר לאירוע.\nתאריך: \nמקום: ');

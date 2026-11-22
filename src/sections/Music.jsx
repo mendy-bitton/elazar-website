@@ -6,6 +6,7 @@ import { scope } from '../lib/scope';
 import { stageLights } from '../lib/stageLights';
 import { ui } from '../lib/ui';
 import { useVideo } from '../components/VideoModal';
+import { useContent } from '../lib/content';
 
 const SONGS = [
   { id: 'emjirOPaBeU', he: 'מי אדיר', meta: 'סינגל חופה', focus: '50%', tint: '#8fa7c4' },
@@ -22,6 +23,7 @@ const ARROW = <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 7 7 17M7 
 export default function Music() {
   const ref = useRef(null);
   const { open } = useVideo();
+  const { texts } = useContent();
 
   useEffect(() => {
     const sec = ref.current;
@@ -207,8 +209,8 @@ export default function Music() {
 
       <div className="music__head">
         <div>
-          <h2 className="music__title">המוזיקה שלי</h2>
-          <p className="music__sub">בחרו שיר מהמדף, ולחצו על העטיפה כדי להאזין.</p>
+          <h2 className="music__title">{texts.musicTitle}</h2>
+          <p className="music__sub">{texts.musicSub}</p>
         </div>
         <a className="moments__all" href="https://www.youtube.com/@elazar_bitton_official/videos" target="_blank" rel="noopener"><span>לכל השירים ביוטיוב</span>{ARROW}</a>
       </div>

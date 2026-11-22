@@ -3,21 +3,23 @@
 import { useEffect, useRef } from 'react';
 import { PhoneIcon, WhatsappLogoIcon, InstagramLogoIcon } from '@phosphor-icons/react';
 import { gsap } from '../lib/motion';
-import { reduce, WA, $, $$ } from '../lib/env';
+import { reduce, $, $$ } from '../lib/env';
 import { scope } from '../lib/scope';
 import { stageLights } from '../lib/stageLights';
+import { useContent, telHref, waHref, igHref, igHandle } from '../lib/content';
 
-// the ways to get in touch; on hover each icon takes its own brand colour
-const WAYS = [
-  { href: 'tel:+972528108100', label: 'טלפון', value: '052.810.8100', ltr: true, Icon: PhoneIcon, brand: 'var(--gold-2)', ink: 'var(--on-gold)' },
-  { href: WA, label: 'וואטסאפ', value: 'שלחו הודעה', external: true, Icon: WhatsappLogoIcon, brand: '#25D366' },
-  { href: 'https://www.instagram.com/elazar_bitton_official/', label: 'אינסטגרם', value: '@elazar_bitton_official', ltr: true, external: true, Icon: InstagramLogoIcon, brand: '#E4405F' }
-];
+// the ways to get in touch (from the details saved in /admin); on hover each icon takes its own brand colour
+const ways = c => [
+  c.phone && { href: telHref(c.phone), label: 'טלפון', value: c.phone, ltr: true, Icon: PhoneIcon, brand: 'var(--gold-2)', ink: 'var(--on-gold)' },
+  c.whatsapp && { href: waHref(c.whatsapp, c.whatsappText), label: 'וואטסאפ', value: 'שלחו הודעה', external: true, Icon: WhatsappLogoIcon, brand: '#25D366' },
+  c.instagram && { href: igHref(c.instagram), label: 'אינסטגרם', value: '@' + igHandle(c.instagram), ltr: true, external: true, Icon: InstagramLogoIcon, brand: '#E4405F' }
+].filter(Boolean);
 
 const ARROW = <span className="cta__arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M17 7 7 17M7 9.5V17h7.5" /></svg></span>;
 
 export default function Cta() {
   const ref = useRef(null);
+  const { texts, contact } = useContent();
 
   useEffect(() => {
     const sec = ref.current;
@@ -58,12 +60,12 @@ export default function Cta() {
       <div className="cta__glow" aria-hidden="true" />
       <div className="cta__figure" aria-hidden="true"><img src="/assets/silhouette.svg" alt="" width="501" height="664" loading="lazy" decoding="async" /></div>
       <h2 className="cta__title" id="cta-title">
-        <span className="line"><span className="line__in">חוגגים שמחה?</span></span>
-        <span className="line"><span className="line__in">אירוע?</span></span>
-        <span className="line"><span className="line__in"><span className="cta__gold">בואו נדבר.</span></span></span>
+        <span className="line"><span className="line__in">{texts.ctaLine1}</span></span>
+        {texts.ctaLine2 && <span className="line"><span className="line__in">{texts.ctaLine2}</span></span>}
+        <span className="line"><span className="line__in"><span className="cta__gold">{texts.ctaLine3}</span></span></span>
       </h2>
       <div className="cta__links">
-        {WAYS.map(({ href, label, value, ltr, external, Icon, brand, ink }) => (
+        {ways(contact).map(({ href, label, value, ltr, external, Icon, brand, ink }) => (
           <a key={label} className="cta__item" href={href} {...(external ? { target: '_blank', rel: 'noopener' } : {})}
             style={{ '--brand': brand, ...(ink ? { '--brand-ink': ink } : {}) }}>
             <span className="cta__icon" aria-hidden="true"><Icon weight="light" /></span>

@@ -7,6 +7,7 @@ import { scope } from '../lib/scope';
 import { stageLights } from '../lib/stageLights';
 import { mountTileWall } from '../lib/wall';
 import { listClips } from '../lib/cld';
+import { useContent } from '../lib/content';
 
 const ARROW = <svg viewBox="0 0 24 24"><path d="M17 7 7 17M7 9.5V17h7.5" /></svg>;
 const DOORS = [
@@ -17,6 +18,7 @@ const DOORS = [
 export default function Reel() {
   const ref = useRef(null);
   const [cats, setCats] = useState(null);           // the clips of each door, once Cloudinary answers
+  const { texts } = useContent();
 
   useEffect(() => {
     const sec = ref.current;
@@ -122,8 +124,8 @@ export default function Reel() {
       <div className="reel__glow" aria-hidden="true" />
       <canvas className="reel__wall" aria-hidden="true" />
       <div className="reel__head">
-        <h2 className="reel__title">מהבמה</h2>
-        <p className="reel__sub">השמחה, בלי פילטרים.</p>
+        <h2 className="reel__title">{texts.reelTitle}</h2>
+        <p className="reel__sub">{texts.reelSub}</p>
       </div>
       <div className="reel__ring" aria-hidden="true" />
       <div className="reel__cats">

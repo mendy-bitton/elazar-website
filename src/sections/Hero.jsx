@@ -6,9 +6,11 @@ import { reduce, fine, beat, $, $$ } from '../lib/env';
 import { scope } from '../lib/scope';
 import { stageLights } from '../lib/stageLights';
 import { whenBooted } from '../lib/ui';
+import { useContent } from '../lib/content';
 
 export default function Hero() {
   const ref = useRef(null);
+  const { texts } = useContent();
 
   useEffect(() => {
     const hero = ref.current;
@@ -128,12 +130,12 @@ export default function Hero() {
 
       <div className="hero__content">
         <h1 className="hero__title" data-cursor="text">
-          <span className="line"><span className="line__in">עם כל הלב,</span></span>
-          <span className="line"><span className="line__in">לשמחה שלכם <Mic /></span></span>
+          <span className="line"><span className="line__in">{texts.heroTitle1}</span></span>
+          <span className="line"><span className="line__in">{texts.heroTitle2} <Mic /></span></span>
         </h1>
         <div className="hero__lead">
-          <p>אני אלעזר ביטון, זמר חתונות ואירועים בסגנון חב״די וחסידי. אני מאמין שכל שמחה צריכה נשמה, ולכן אני מגיע לכל אירוע עם כל הלב.</p>
-          <p>מניגוני הקבלת פנים והחופה המרגשים ועד ריקודים סוערים שלא נגמרים, אני בונה את הערב יחד אתכם, לפי הקהל, האווירה והרגע.</p>
+          <p>{texts.heroLead1}</p>
+          {texts.heroLead2 && <p>{texts.heroLead2}</p>}
         </div>
         <div className="hero__ctas">
           <a className="btn btn--gold" href="#contact"><span className="btn__label">בואו נדבר</span><span className="btn__icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M17 7 7 17M7 9.5V17h7.5" /></svg></span></a>
