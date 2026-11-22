@@ -130,6 +130,7 @@ export default function Hero() {
 
       <div className="hero__content">
         <h1 className="hero__title" data-cursor="text">
+          <span className="sr-only">אלעזר ביטון, זמר חתונות ואירועים: </span>
           <span className="line"><span className="line__in">{texts.heroTitle1}</span></span>
           <span className="line"><span className="line__in">{texts.heroTitle2} <Mic /></span></span>
         </h1>

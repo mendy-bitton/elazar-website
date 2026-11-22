@@ -1,15 +1,31 @@
 /* MUSIC: a shelf of album cases. The active one is pulled out and turned to show its cover;
    clicking the cover plays the song in the popup. */
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { beat, reduce, $ } from '../lib/env';
 import { scope } from '../lib/scope';
 import { stageLights } from '../lib/stageLights';
 import { ui } from '../lib/ui';
 import { useVideo } from '../components/VideoModal';
+import { track } from '../lib/analytics';
 import { useContent } from '../lib/content';
 import { DEFAULT_SONGS, songVisual, toSong } from '../lib/videos';
 
-const thumb = id => `https://i.ytimg.com/vi/${id}/maxresdefault.jpg`;
+// the cover: each song's own YouTube image, checked size by size. Some videos never get the high-res
+// one (YouTube answers with a small grey placeholder): those take the 640px or 480px image, zoomed
+// just past its black bars. If YouTube has no image at all, the cover is the gold mic on the song's colour.
+const COVERS = [['maxresdefault', 'cover'], ['sddefault', 'auto 136%'], ['hqdefault', 'auto 136%']];
+const coverUrl = (id, k) => `https://i.ytimg.com/vi/${id}/${COVERS[k][0]}.jpg`;
+const pickCover = id => new Promise(done => {
+  let k = 0;
+  const next = () => {
+    if (k >= COVERS.length) { done(-1); return; }
+    const i = k++, im = new Image();
+    im.onload = () => (im.naturalWidth > 120 ? done(i) : next());
+    im.onerror = next;
+    im.src = coverUrl(id, i);
+  };
+  next();
+});
 const ARROW = <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 7 7 17M7 9.5V17h7.5" /></svg>;
 
 export default function Music() {
@@ -19,6 +35,14 @@ export default function Music() {
   // the songs Elazar placed on the shelf, in his order; the built list until the panel takes over
   const songs = useMemo(() => (videos ? videos.music.map(toSong) : DEFAULT_SONGS.map((s, i) => ({ ...s, ...songVisual(s.id, i) }))), [videos]);
   const songsKey = songs.map(s => s.id).join(',');
+  const [covers, setCovers] = useState({});      // song id → which of COVERS it has (the first, until checked; -1: none)
+
+  useEffect(() => {
+    let alive = true;
+    songs.forEach(({ id }) => pickCover(id).then(k => { if (alive && k) setCovers(c => ({ ...c, [id]: k })); }));
+    return () => { alive = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [songsKey]);
 
   useEffect(() => {
     const sec = ref.current;
@@ -139,7 +163,7 @@ export default function Music() {
     const go = i => { T = clampT(Math.round(i)); };
     s.on(prevBtn, 'click', () => go(Math.round(T) - 1));
     s.on(nextBtn, 'click', () => go(Math.round(T) + 1));
-    const listen = i => open({ yt: SONGS[i].id, title: SONGS[i].he, origin: cases[i].cv, wide: true });
+    const listen = i => { track('song_play', { song_title: SONGS[i].he }); open({ yt: SONGS[i].id, title: SONGS[i].he, origin: cases[i].cv, wide: true }); };
     s.on(playBtn, 'click', () => listen(active));
 
     let suppressClick = false;
@@ -217,14 +241,16 @@ export default function Music() {
       <div className="music__shelf" aria-label="מדף השירים">
         <div className="music__stage">
           {songs.map(song => {
-            const img = `url(${thumb(song.id)})`;
+            const k = covers[song.id] || 0, plain = k < 0;
+            const img = plain ? 'radial-gradient(120% 95% at 50% 38%, transparent, rgba(0, 0, 0, .6))' : `url(${coverUrl(song.id, k)})`, size = plain ? 'cover' : COVERS[k][1];
             return (
               <button key={song.id} type="button" className="case" aria-label={`${song.he}, ${song.meta}`} data-cursor="mic">
-                <span className="face case__sp" style={{ '--tint': song.tint, '--img': img, '--focus': song.focus }}>
+                <span className="face case__sp" style={{ '--tint': song.tint, '--img': img, '--img-size': size, '--focus': song.focus }}>
                   <span className="case__band" /><span className="case__t">{song.he}</span><span className="case__m">ELAZAR</span>
                 </span>
-                <span className="face case__cv" style={{ '--img': img, '--focus': song.focus }}>
-                  <span className="case__art" /><span className="case__sheen" />
+                <span className="face case__cv" style={{ '--tint': song.tint, '--img': img, '--img-size': size, '--focus': song.focus }}>
+                  <span className="case__art">{plain && <svg className="case__mic" viewBox="0 0 142 226" aria-hidden="true"><use href="#micArt" /></svg>}</span>
+                  <span className="case__sheen" />
                 </span>
               </button>
             );

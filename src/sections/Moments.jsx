@@ -4,6 +4,7 @@ import { gsap, ScrollTrigger } from '../lib/motion';
 import { reduce, $, $$ } from '../lib/env';
 import { scope } from '../lib/scope';
 import { useVideo } from '../components/VideoModal';
+import { track } from '../lib/analytics';
 import { useContent } from '../lib/content';
 import { DEFAULT_SHORTS, toShort } from '../lib/videos';
 
@@ -105,7 +106,7 @@ export default function Moments() {
           <div className="moments__track">
             {shorts.map(v => (
               <button key={v.yt} className="mcard" type="button" data-cursor="view"
-                onClick={e => open({ yt: v.yt, title: v.title, origin: e.currentTarget.querySelector('.mcard__media') })}>
+                onClick={e => { track('video_play', { video_title: v.name || v.title, area: 'moments' }); open({ yt: v.yt, title: v.title, origin: e.currentTarget.querySelector('.mcard__media') }); }}>
                 <span className="mcard__media">
                   <img src={`https://i.ytimg.com/vi/${v.yt}/oardefault.jpg`} alt="" decoding="async"
                     onError={e => fallback(e.currentTarget)}

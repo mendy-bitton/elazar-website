@@ -18,8 +18,6 @@ export default function Home() {
   const onGone = useCallback(() => setLoading(false), []);
   const { hash } = useLocation();
 
-  useEffect(() => { document.title = 'אלעזר ביטון · זמר חתונות ואירועים'; }, []);
-
   // in-page links (#music, #contact...) glide to their section, closing the menu first
   useEffect(() => {
     const onClick = e => {

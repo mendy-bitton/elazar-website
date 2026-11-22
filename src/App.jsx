@@ -3,7 +3,8 @@
 import { lazy, Suspense, useState } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router';
 import { markBooted } from './lib/ui';
-import { ContentProvider } from './lib/content';
+import { ContentProvider, useContent } from './lib/content';
+import { usePageHead } from './lib/pageHead';
 import SvgDefs from './components/SvgDefs';
 import Cursor from './components/Cursor';
 import Footer from './components/Footer';
@@ -16,6 +17,8 @@ const AdminApp = lazy(() => import('./admin/AdminApp'));
 
 function Shell() {
   const { pathname } = useLocation();
+  const { contact } = useContent();
+  usePageHead(contact);                    // title, description, link previews, structured data, analytics
   // the loader is the home page's opening; arriving on another page skips it for the whole visit
   useState(() => { if (pathname !== '/') markBooted(); });
 

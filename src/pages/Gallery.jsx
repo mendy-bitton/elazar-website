@@ -7,6 +7,7 @@ import { SubNav } from '../components/Nav';
 import { useVideo } from '../components/VideoModal';
 import { useContent } from '../lib/content';
 import { toClip } from '../lib/videos';
+import { track } from '../lib/analytics';
 
 const PLAY = <span className="clip__play" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5.5v13l11-6.5z" /></svg></span>;
 
@@ -19,10 +20,11 @@ export default function Gallery({ tag, title, kind = '' }) {
   const gridRef = useRef(null);
 
   useEffect(() => {
-    document.title = `${title} · אלעזר ביטון`;
     document.body.classList.add('subpage');
     goTo(0, { immediate: true });
     return () => document.body.classList.remove('subpage');
+    // again when moving between the galleries (the same page, another title)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [title]);
 
   useEffect(() => {
@@ -55,7 +57,7 @@ export default function Gallery({ tag, title, kind = '' }) {
         <header className="gallery__head">
           <div>
             <p className="gallery__kicker">מהבמה</p>
-            <h1 className="gallery__title">{title}</h1>
+            <h1 className="gallery__title">{title}<span className="sr-only"> עם אלעזר ביטון</span></h1>
           </div>
           <p className="gallery__count" aria-live="polite">{items && items.length ? `${items.length} סרטונים` : ''}</p>
         </header>
@@ -74,8 +76,8 @@ export default function Gallery({ tag, title, kind = '' }) {
                 <li key={it.id} className="clip-item">
                   <button className="clip" type="button" data-cursor="view"
                     aria-label={`צפייה: ${[it.title, it.meta, it.credit].filter(Boolean).join(', ')}`}
-                    onClick={e => open({ clip: it, title: [it.title, it.credit].filter(Boolean).join(' · '), origin: e.currentTarget.querySelector('.clip__media') })}>
-                    <span className="clip__media"><img src={it.thumb(480)} alt="" loading="lazy" decoding="async" />{PLAY}</span>
+                    onClick={e => { track('video_play', { video_title: it.title, area: tag }); open({ clip: it, title: [it.title, it.credit].filter(Boolean).join(' · '), origin: e.currentTarget.querySelector('.clip__media') }); }}>
+                    <span className="clip__media"><img src={it.thumb(480)} alt={[it.title, it.meta, 'אלעזר ביטון'].filter(Boolean).join(' · ')} loading="lazy" decoding="async" />{PLAY}</span>
                     <span className="clip__cap">
                       {kicker && <span className="clip__kicker">{kicker}</span>}
                       <span className="clip__title">{it.title}</span>
