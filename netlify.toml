@@ -2,6 +2,10 @@
   command = "npm run build"
   publish = "dist"
 
+# Vite needs Node 20.19+ or 22.12+; pin it so the build never depends on Netlify's default
+[build.environment]
+  NODE_VERSION = "22"
+
 # one page app: every address (/weddings, /events, ...) is served by index.html and routed in the browser
 [[redirects]]
   from = "/*"
