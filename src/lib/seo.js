@@ -105,11 +105,15 @@ export function headHtml(path, { analytics = false } = {}) {
     `<meta property="og:image:alt" content="${esc(OG_IMAGE.alt)}">`,
     `<meta name="twitter:card" content="summary_large_image">`,
     `<script type="application/ld+json" id="ld">${ldJson(structuredData(p.path))}</script>`,
-    // Google Analytics 4: page views are sent by the site itself on every page change (see analytics.js)
+    // Google Analytics 4, in Google's standard form (Search Console verifies the site through it, so keep
+    // it as is). Google counts the page a visit starts on; the site counts each move after it (analytics.js)
     analytics && GA_ID && `<script async src="https://www.googletagmanager.com/gtag/js?id=${esc(GA_ID)}"></script>`,
-    analytics && GA_ID && `<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config',${JSON.stringify(GA_ID)},{send_page_view:false});</script>`
+    analytics && GA_ID && `<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config',${JSON.stringify(GA_ID)});</script>`
   ].filter(Boolean).join('\n');
 }
+
+// the admin panel's own page: out of Google, and without Analytics (Elazar's visits aren't counted)
+export const adminHeadHtml = () => `<title>ניהול · ${esc(SITE_NAME)}</title>\n<meta name="robots" content="noindex, nofollow">`;
 
 /* ---------- sitemap.xml and robots.txt ---------- */
 export function sitemapXml(date = new Date().toISOString().slice(0, 10)) {

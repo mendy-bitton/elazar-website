@@ -1,8 +1,9 @@
 /* GOOGLE ANALYTICS 4: what's counted.
    gtag itself is loaded in the page's <head> (only on a real build, and only once a Measurement ID
    is set in site.config.js); without it every function here quietly does nothing.
-   - page_view: on every page change, with the new page's title (sent by the site, not by GA,
-     so in GA turn off "Page changes based on browser history events" to avoid counting twice)
+   - page_view: Google counts the page a visit starts on by itself; the site sends one for each
+     move to another page inside the site, with the new page's title (so in GA, "Page changes based
+     on browser history events" stays off, or those moves would count twice)
    - song_play / video_play: a song from the shelf, a moment, a clip from the galleries
    - contact_click: phone, WhatsApp, Instagram
    - platform_click: Spotify, Apple Music, YouTube... */

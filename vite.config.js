@@ -2,7 +2,7 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { writeFileSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { PAGES, headHtml, sitemapXml, robotsTxt } from './src/lib/seo.js';
+import { PAGES, headHtml, adminHeadHtml, sitemapXml, robotsTxt } from './src/lib/seo.js';
 
 // on this computer, serve the Netlify function at the same address it has on Netlify,
 // so the admin panel's scan works in `npm run dev` too
@@ -40,10 +40,12 @@ const seoPages = () => {
       const dir = options.dir;
       const html = readFileSync(join(dir, 'index.html'), 'utf8');
       for (const p of PAGES) if (p.file !== 'index.html') writeFileSync(join(dir, p.file), html.replace(SEO_BLOCK, () => block(p.path)));
+      writeFileSync(join(dir, 'admin.html'), html.replace(SEO_BLOCK, () => `<!-- seo:start -->\n${adminHeadHtml()}\n<!-- seo:end -->`));
       writeFileSync(join(dir, 'sitemap.xml'), sitemapXml());
       writeFileSync(join(dir, 'robots.txt'), robotsTxt());
-      // Netlify: /weddings is served from weddings.html (these come before netlify.toml's catch-all)
-      writeFileSync(join(dir, '_redirects'), PAGES.filter(p => p.file !== 'index.html').map(p => `${p.path} /${p.file} 200`).join('\n') + '\n');
+      // Netlify: /weddings is served from weddings.html, /admin from admin.html (before netlify.toml's catch-all)
+      const rules = [...PAGES.filter(p => p.file !== 'index.html').map(p => `${p.path} /${p.file} 200`), '/admin /admin.html 200', '/admin/* /admin.html 200'];
+      writeFileSync(join(dir, '_redirects'), rules.join('\n') + '\n');
     }
   };
 };

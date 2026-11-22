@@ -12,6 +12,8 @@ function setTag(selector, make, attr, value) {
   if (!el) { el = make(); document.head.appendChild(el); }
   el.setAttribute(attr, value);
 }
+let firstPage = true;                          // Google counts the page the visit starts on itself
+
 const meta = (key, value, by = 'name') => setTag(`meta[${by}="${key}"]`, () => {
   const m = document.createElement('meta'); m.setAttribute(by, key); return m;
 }, 'content', value);
@@ -32,7 +34,7 @@ export function usePageHead(contact) {
     meta('og:title', p.title, 'property');
     meta('og:description', p.description, 'property');
     meta('og:url', url, 'property');
-    pageView();
+    if (firstPage) firstPage = false; else pageView();
   }, [pathname, admin]);
 
   // the structured data carries the contact details saved in /admin
