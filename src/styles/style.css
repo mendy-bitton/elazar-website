@@ -1,0 +1,765 @@
+/* =========================================================
+   ELAZAR · hero
+   Layout and motion follow the reference hero:
+   dark text side, warm light behind a sharp silhouette.
+   Palette: Stage (black room, dim stage lights, gold spotlight)
+   ========================================================= */
+
+/* ---------- palettes ---------- */
+:root {
+  /* Stage: near-black room, dim stage lights pulsing to a beat, one gold spotlight behind him */
+  --bg-0: #060709;
+  --hero-grad: radial-gradient(130% 100% at 28% 30%, #0e1016 0%, #08090c 55%, #060709 100%);
+  --hero-grad-m: radial-gradient(140% 90% at 50% 70%, #0e1016 0%, #08090c 55%, #060709 100%);
+  --light-a: rgba(255, 218, 150, .96);
+  --light-b: rgba(226, 150, 48, .2);
+  --light-o: .9;
+  --light-size: 88vmax;
+  --nav-pill: var(--gold);
+  --nav-pill-ink: var(--on-gold);
+  --text: #fbf6ec;
+  --gold-1: #f9e3a6;
+  --gold-2: #e0af52;
+  --gold-3: #a9772a;
+  --on-gold: #0a0b0e;
+  --loader-bg: #e0af52;
+  --loader-ink: #0a0b0e;
+}
+/* shared tokens; :where() keeps them below the palette blocks */
+:where(:root) {
+  --light-size: 70vmax;
+  --nav-pill: var(--text);
+  --nav-pill-ink: var(--on-gold);
+  --text-2: color-mix(in srgb, var(--text) 80%, transparent);
+  --text-3: color-mix(in srgb, var(--text) 60%, transparent);
+  --hair: color-mix(in srgb, var(--text) 34%, transparent);
+
+  --f: 'Assistant', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+:root {
+  --gold: linear-gradient(135deg, var(--gold-1) 0%, var(--gold-2) 48%, var(--gold-3) 100%);
+  --pad: 5vw;
+  --nav-h: 82px;
+  --ease-out: cubic-bezier(.16, 1, .3, 1);
+  --ease-io: cubic-bezier(.76, 0, .24, 1);
+  --ease-spring: cubic-bezier(.32, .72, 0, 1);
+}
+
+/* ---------- base ---------- */
+*, *::before, *::after { box-sizing: border-box }
+html, body { margin: 0; padding: 0 }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; background: var(--bg-0) }
+html.lenis, html.lenis body { height: auto }
+.lenis.lenis-smooth { scroll-behavior: auto !important }
+.lenis.lenis-stopped { overflow: hidden }
+body {
+  font-family: var(--f);
+  background: var(--bg-0);
+  color: var(--text);
+  font-size: 17px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: clip;
+}
+body.is-loading { overflow: hidden }
+img, svg { display: block }
+a { color: inherit; text-decoration: none }
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer }
+h1, p { margin: 0 }
+:focus-visible { outline: 2px solid var(--gold-2); outline-offset: 3px; border-radius: 6px }
+::selection { background: var(--gold-2); color: var(--on-gold) }
+
+/* film grain on a fixed layer */
+body::after {
+  content: ""; position: fixed; inset: 0; z-index: 90; pointer-events: none; opacity: .05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* the logo, as a crisp vector mask filled with gold */
+.logo-mark {
+  display: block; aspect-ratio: 536 / 222;
+  background: var(--gold);
+  -webkit-mask: url(/assets/logo.svg) center / contain no-repeat;
+          mask: url(/assets/logo.svg) center / contain no-repeat;
+}
+
+/* =========================================================
+   BUTTONS
+   ========================================================= */
+.pill {
+  position: relative; isolation: isolate; overflow: hidden;
+  display: inline-flex; align-items: center; gap: 12px;
+  height: 45px; padding: 0 24px; border-radius: 999px;
+  font-size: 15.8px; font-weight: 600; white-space: nowrap;
+  transition: color .5s var(--ease-out), border-color .5s var(--ease-out);
+}
+.pill--gold { background: var(--gold); color: var(--on-gold) }
+.nav .pill--gold { background: var(--nav-pill); color: var(--nav-pill-ink) }
+.pill--line { border: 1px solid var(--hair); color: var(--text); padding-inline: 20px 5px }
+.pill::before, .btn::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; border-radius: inherit;
+  background: var(--text); transform: translateY(101%);
+  transition: transform .6s var(--ease-spring);
+}
+.pill:hover::before, .btn:hover::before { transform: none }
+.pill--line:hover, .btn--line:hover { color: var(--on-gold); border-color: var(--text) }
+.pill:active, .btn:active { scale: .98 }
+
+.burger { width: 35px; height: 35px; border-radius: 50%; background: var(--text); display: grid; place-content: center; gap: 4px }
+.burger i { display: block; width: 12px; height: 1.5px; background: var(--on-gold); transition: transform .6s var(--ease-spring) }
+.nav__menu[aria-expanded="true"] .burger i:first-child { transform: translateY(2.75px) rotate(45deg) }
+.nav__menu[aria-expanded="true"] .burger i:last-child { transform: translateY(-2.75px) rotate(-45deg) }
+
+.btn {
+  position: relative; isolation: isolate; overflow: hidden;
+  display: inline-flex; align-items: center; gap: 14px;
+  height: clamp(48px, 3.62vw, 60px); padding: 0 clamp(22px, 2vw, 32px);
+  border-radius: 999px; font-size: clamp(15px, 1.1vw, 18px); font-weight: 600; white-space: nowrap;
+  transition: color .5s var(--ease-out), border-color .5s var(--ease-out);
+}
+.btn--gold { background: var(--gold); color: var(--on-gold); padding-inline: clamp(22px, 2vw, 30px) 7px }
+.btn--line { border: 1px solid var(--hair); color: var(--text) }
+.btn__icon {
+  width: calc(clamp(48px, 3.62vw, 60px) - 14px); aspect-ratio: 1; border-radius: 50%;
+  display: grid; place-items: center; background: color-mix(in srgb, var(--on-gold) 12%, transparent);
+  transition: transform .6s var(--ease-spring), background-color .4s;
+}
+.btn__icon svg { width: 46%; height: 46%; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round }
+.btn:hover .btn__icon { transform: translate(-2px, 2px) scale(1.06); background: color-mix(in srgb, var(--on-gold) 18%, transparent) }
+
+/* =========================================================
+   PRELOADER
+   ========================================================= */
+.loader { display: none }
+.js .loader { display: block; position: fixed; inset: 0; z-index: 100; color: var(--loader-ink) }
+.loader__strips { position: absolute; inset: 0; display: flex; flex-direction: column }
+.loader__strips i { flex: 1; margin-block: -1px; background: var(--loader-bg); transform-origin: 0 50% }
+.loader__glow { position: absolute; inset: 0; background: radial-gradient(70vmax 60vmax at 50% 40%, rgba(255, 255, 255, .28), transparent 70%); pointer-events: none }
+.loader__logo { position: absolute; top: 50%; left: 50%; width: min(420px, 62vw); translate: -50% -50%; overflow: hidden; padding: 2px }
+.loader__logo-in { background: var(--loader-ink); width: 100% }
+.loader__count {
+  position: absolute; bottom: calc(var(--pad) - 18px); left: var(--pad); display: flex;
+  font-weight: 800; font-size: clamp(56px, 7vw, 110px); line-height: 1.15; letter-spacing: -.02em;
+}
+.loader__count .digit { display: block; height: 1.15em; overflow: hidden; width: .56em; text-align: center }
+.loader__count .roll { display: flex; flex-direction: column }
+.loader__count .roll b { display: block; height: 1.15em; font-weight: 800 }
+
+/* =========================================================
+   CURSOR (white + difference: turns blue-violet over gold)
+   ========================================================= */
+.cursor { display: none }
+.has-cursor .cursor { display: block; position: fixed; top: 0; left: 0; z-index: 95; pointer-events: none; mix-blend-mode: difference; will-change: transform }
+.cursor__dot {
+  position: absolute; width: 132px; height: 132px; left: -66px; top: -66px; border-radius: 50%;
+  border: 14px solid #fff; background: transparent;
+  background-origin: border-box; background-clip: border-box;   /* one gradient across the whole disc, no inner square */
+  transform: scale(.106); will-change: transform;
+  transition: transform .6s var(--ease-out), background-color .35s var(--ease-out), opacity .3s;
+}
+.cursor.is-link .cursor__dot { transform: scale(.4); background: #fff }
+.cursor.is-text .cursor__dot { transform: scale(1); background: #fff }
+.cursor.is-mic .cursor__dot { transform: scale(.2); background: transparent }
+.cursor.is-gone .cursor__dot, .cursor.is-gone .cursor__play { opacity: 0 }
+/* over a video: the cursor becomes a gold play button */
+.cursor__play {
+  position: absolute; left: -15px; top: -15px; width: 30px; height: 30px;
+  display: grid; place-items: center; color: var(--on-gold);
+  opacity: 0; scale: .3; rotate: -90deg;
+  transition: opacity .25s var(--ease-out), scale .55s var(--ease-spring), rotate .55s var(--ease-spring);
+}
+.cursor__play svg { width: 26px; height: 26px; fill: currentColor; margin-left: 4px }
+.has-cursor .cursor.is-view { mix-blend-mode: normal }
+.cursor.is-view .cursor__dot { transform: scale(.6); background: var(--gold) border-box; border-color: transparent; box-shadow: 0 10px 40px -8px rgba(224, 175, 82, .55) }
+.cursor.is-view .cursor__play { opacity: 1; scale: 1; rotate: 0deg }
+.has-cursor, .has-cursor a, .has-cursor button { cursor: none }
+
+/* =========================================================
+   NAV
+   ========================================================= */
+.nav {
+  position: fixed; top: 0; right: 0; left: 0; z-index: 60; height: var(--nav-h);
+  display: flex; align-items: center; justify-content: space-between; padding: 0 var(--pad);
+  pointer-events: none; transition: transform .8s var(--ease-io);
+}
+.nav > * { pointer-events: auto }
+.nav.is-hidden { transform: translateY(-110%) }
+/* once the page moves, a soft dark band keeps the bar readable over whatever scrolls beneath */
+.nav::before {
+  content: ""; position: absolute; inset: 0 0 -28px 0; z-index: -1; pointer-events: none;
+  background: linear-gradient(180deg, rgba(6, 7, 9, .86) 0%, rgba(6, 7, 9, .55) 55%, transparent 100%);
+  opacity: 0; transition: opacity .5s var(--ease-out);
+}
+.nav.is-scrolled::before { opacity: 1 }
+.nav__brand { display: block; width: 92px }
+.nav__actions { display: flex; align-items: center; gap: 8px }
+
+/* =========================================================
+   MENU
+   ========================================================= */
+.menu { position: fixed; inset: 0; z-index: 55; visibility: hidden; color: var(--text);
+  background: color-mix(in srgb, var(--bg-0) 88%, transparent);
+  backdrop-filter: blur(28px) saturate(140%); -webkit-backdrop-filter: blur(28px) saturate(140%) }
+.menu.is-open { visibility: visible }
+.menu__inner { height: 100%; display: flex; align-items: flex-end; justify-content: space-between; gap: 6vw; padding: calc(var(--nav-h) + 6vh) var(--pad) var(--pad) }
+.menu__links { display: flex; flex-direction: column; gap: 1vh }
+.menu__links a { display: block; overflow: hidden }
+.menu__label { display: block; font-size: clamp(44px, 7vw, 110px); font-weight: 600; line-height: 1.08; letter-spacing: -.02em; transition: color .4s, translate .7s var(--ease-spring) }
+.menu__links a:hover .menu__label { color: var(--gold-2); translate: -18px 0 }
+
+/* =========================================================
+   HERO
+   ========================================================= */
+.hero { position: relative; height: 100vh; height: 100dvh; min-height: 640px; overflow: hidden; isolation: isolate; background: var(--bg-0) }
+.hero__bg { position: absolute; inset: 0 0 auto 0; height: 120%; z-index: -4; background: var(--hero-grad); transform-origin: 30% 30% }
+.hero__stage { position: absolute; inset: 0; z-index: -3; width: 100%; height: 100%; pointer-events: none }
+.hero__light {
+  position: absolute; z-index: -2; width: var(--light-size); height: var(--light-size); border-radius: 50%;
+  left: calc(27vw - var(--light-size) / 2); top: calc(26vh - var(--light-size) / 2);
+  background: radial-gradient(closest-side, var(--light-a), var(--light-b) 48%, transparent);
+  mix-blend-mode: screen; opacity: var(--light-o); will-change: transform;
+  animation: drift 14s ease-in-out infinite alternate;
+}
+@keyframes drift { from { translate: -1.5vw 1vh } to { translate: 1.5vw -1vh } }
+
+.hero__glow {
+  position: absolute; z-index: -2; left: 0; top: 0; width: 44vmax; height: 44vmax; margin: -22vmax 0 0 -22vmax; border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(255, 216, 150, .5), rgba(226, 150, 48, .16) 46%, transparent);
+  mix-blend-mode: screen; opacity: 0; pointer-events: none; will-change: transform, opacity;
+}
+.hero__figure { position: absolute; bottom: 0; z-index: -1; left: calc(27vw - 33.3vh); height: 94vh; aspect-ratio: 501 / 664; pointer-events: none }
+.hero__figure img { width: 100%; height: 100% }
+
+.hero__content { position: absolute; z-index: 1; right: var(--pad); top: calc(var(--nav-h) + 12.5vh); width: min(52vw, 900px) }
+.hero__title { font-weight: 800; font-size: clamp(46px, 6vw, 116px); line-height: 1.02; letter-spacing: -.02em; color: var(--text) }
+.line { display: block; overflow: hidden; padding: .06em 0 .12em; margin: -.06em 0 -.12em }
+.line__in { display: block; will-change: transform }
+
+/* the microphone, free-standing after the last word */
+.mic {
+  position: relative; display: inline-block;
+  width: .79em; height: .92em; vertical-align: -.1em; margin-inline-start: .02em;
+}
+.mic svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 .03em .1em rgba(0, 0, 0, .45)) }
+.mic__glow { fill: #fff6dc; opacity: .92 }
+
+.hero__lead { margin-top: clamp(22px, 2.3vw, 40px); width: min(37vw, 620px); font-size: clamp(15px, 1.3vw, 21px); line-height: 1.55; font-weight: 400; color: var(--text-2) }
+.hero__lead p + p { margin-top: .7em }
+.hero__ctas { margin-top: clamp(24px, 2.5vw, 44px); display: flex; gap: 10px; flex-wrap: wrap }
+
+.hero__scroll {
+  position: absolute; z-index: 1; left: var(--pad); bottom: 4.1vh;
+  display: flex; align-items: center; gap: 12px;
+  font-size: clamp(12px, .9vw, 14px); font-weight: 500; letter-spacing: .16em; color: #fff;
+  mix-blend-mode: difference; opacity: .78; transition: opacity .3s;
+}
+.hero__scroll:hover { opacity: 1 }
+.hero__scroll svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; animation: nudge 2.2s var(--ease-io) infinite }
+@keyframes nudge { 0%, 100% { translate: 0 0 } 50% { translate: 0 5px } }
+
+/* =========================================================
+   EVENTS STRIP
+   ========================================================= */
+.events { position: relative; background: var(--bg-0); overflow: hidden; padding: clamp(28px, 3.6vw, 64px) 0; border-top: 1px solid color-mix(in srgb, var(--gold-2) 22%, transparent) }
+.events__track { display: flex; width: max-content; will-change: transform }
+.events__group { display: flex; align-items: center; flex: none }
+.events span { font-weight: 800; font-size: clamp(54px, 8.4vw, 160px); line-height: 1; letter-spacing: -.02em; color: var(--text); padding: 0 .28em; white-space: nowrap }
+.events span.o { color: transparent; -webkit-text-stroke: 1.5px var(--gold-2) }
+.events .sep { flex: none; height: clamp(46px, 5vw, 96px); width: auto; aspect-ratio: 142 / 226; margin: 0 .5vw; fill: url(#goldGrad) }
+
+/* =========================================================
+   MOMENTS: pinned horizontal carousel
+   ========================================================= */
+.moments { position: relative; background: var(--bg-0) }
+.moments::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(60vw 40vh at 80% 0%, rgba(224, 175, 82, .08), transparent 70%);
+}
+.moments__pin {
+  position: relative; height: 100vh; height: 100dvh; min-height: 680px; overflow: hidden;
+  display: flex; flex-direction: column; justify-content: center; gap: clamp(28px, 4.4vh, 52px);
+  padding: calc(var(--nav-h) + 1vh) 0 5vh;
+}
+.moments__head { display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; padding: 0 var(--pad) }
+.moments__title { margin: 0; font-weight: 600; font-size: clamp(38px, 4vw, 76px); line-height: 1.02; letter-spacing: -.03em; color: var(--text) }
+.moments__sub { margin-top: 12px; font-size: clamp(15px, 1.2vw, 19px); color: var(--text-3) }
+.moments__all {
+  display: inline-flex; align-items: center; gap: 10px; padding-bottom: 4px; font-size: 15.8px; font-weight: 600; color: var(--text);
+  background: linear-gradient(var(--gold-2), var(--gold-2)) 100% 100% / 100% 1px no-repeat; transition: background-size .6s var(--ease-spring), color .3s;
+}
+.moments__all:hover { background-size: 0 1px; color: var(--gold-1) }
+.moments__all svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round }
+
+.moments__viewport { padding: 0 var(--pad) }
+.moments__track { display: flex; gap: clamp(18px, 3.2vw, 56px); width: max-content; will-change: transform }
+
+.mcard { display: flex; flex-direction: column; align-items: flex-start; flex: none; width: clamp(240px, 22vw, 380px); text-align: right; color: var(--text) }
+.mcard__media {
+  position: relative; display: block; width: 100%; aspect-ratio: 3 / 4; overflow: hidden; border-radius: 22px;
+  background: #101218; isolation: isolate;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, .06), 0 30px 60px -30px rgba(0, 0, 0, .8);
+}
+.mcard__media img {
+  position: absolute; top: 0; left: -10%; width: 120%; height: 100%; object-fit: cover;
+  scale: 1.02; transition: scale 1.1s var(--ease-out), filter .6s;
+  will-change: transform;
+}
+.mcard__media::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: linear-gradient(180deg, transparent 55%, rgba(6, 7, 9, .55));
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .07);
+  transition: box-shadow .5s var(--ease-out);
+}
+.mcard:hover .mcard__media img { scale: 1.08 }
+.mcard:hover .mcard__media::after { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--gold-2) 70%, transparent) }
+.mcard__play {
+  position: absolute; z-index: 1; left: 14px; bottom: 14px; width: 44px; height: 44px; border-radius: 50%;
+  display: grid; place-items: center; color: var(--text);
+  background: rgba(10, 11, 14, .35); border: 1px solid rgba(255, 255, 255, .28);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  transition: background-color .4s, color .4s, scale .6s var(--ease-spring);
+}
+.mcard__play svg { width: 16px; height: 16px; fill: currentColor; margin-left: 2px }
+.mcard:hover .mcard__play { background: var(--gold-2); color: var(--on-gold); border-color: transparent; scale: 1.08 }
+.mcard__name { display: block; margin-top: 18px; font-size: clamp(18px, 1.4vw, 22px); font-weight: 600; line-height: 1.2 }
+.mcard__meta { display: block; margin-top: 6px; font-size: clamp(14px, 1.05vw, 16px); color: var(--text-3) }
+
+.mcard--all .mcard__media {
+  display: flex; flex-direction: column; justify-content: space-between; padding: 28px;
+  background: radial-gradient(120% 90% at 20% 0%, #1b1d24 0%, #0c0d11 70%);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--gold-2) 30%, transparent);
+}
+.mcard--all .mcard__media::after { display: none }
+.mcard__mic { width: 42px; height: auto; aspect-ratio: 142 / 226; fill: url(#goldGrad); transition: rotate .8s var(--ease-spring) }
+.mcard--all:hover .mcard__mic { rotate: -10deg }
+.mcard__all-text { font-size: clamp(26px, 2.2vw, 38px); font-weight: 600; line-height: 1.08; letter-spacing: -.02em }
+.mcard__all-arrow { width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center; background: var(--gold); color: var(--on-gold); transition: translate .6s var(--ease-spring) }
+.mcard__all-arrow svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round }
+.mcard--all:hover .mcard__all-arrow { translate: -4px 4px }
+
+.moments__progress { margin: 0 var(--pad); height: 2px; border-radius: 2px; background: rgba(255, 255, 255, .1); overflow: hidden }
+.moments__progress span { display: block; height: 100%; background: var(--gold); transform-origin: 100% 50%; transform: scaleX(0) }
+
+/* =========================================================
+   VIDEO POPUP
+   ========================================================= */
+.modal { position: fixed; inset: 0; z-index: 80; display: grid; place-items: center }
+.modal[hidden] { display: none }
+.modal__backdrop { position: absolute; inset: 0; background: rgba(5, 6, 8, .84); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px) }
+.modal__box { position: relative }
+.modal__frame { position: relative; height: min(82vh, 840px, calc(92vw * 16 / 9)); aspect-ratio: 9 / 16; border-radius: 22px; overflow: hidden; background: #000; box-shadow: 0 0 0 1px rgba(255, 255, 255, .08), 0 40px 120px -30px rgba(0, 0, 0, .9) }
+/* songs are landscape videos */
+.modal.is-wide .modal__frame { height: auto; width: min(1120px, 92vw, calc(80vh * 16 / 9)); aspect-ratio: 16 / 9; border-radius: 18px }
+.modal__player, .modal__player iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0 }
+.modal__bar { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 14px }
+.modal__title { font-size: 15px; color: var(--text-2) }
+.modal__close { width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; color: var(--text); background: rgba(255, 255, 255, .1); border: 1px solid rgba(255, 255, 255, .22); transition: background-color .3s, rotate .6s var(--ease-spring) }
+.modal__close:hover { background: rgba(255, 255, 255, .2); rotate: 90deg }
+.modal__close svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round }
+
+/* =========================================================
+   MUSIC: a shelf of album cases under a spotlight
+   ========================================================= */
+.music {
+  --H: min(42vh, 28vw);
+  position: relative; height: 100vh; height: 100svh; min-height: 720px; overflow: hidden; isolation: isolate;
+  background: var(--bg-0); border-top: 1px solid color-mix(in srgb, var(--gold-2) 16%, transparent);
+}
+/* the same stage lights as the hero, filling the whole section behind everything */
+.music__lights { position: absolute; inset: 0; z-index: -2; width: 100%; height: 100%; pointer-events: none }
+/* a gold light behind the open case (in place of the cone) */
+.music__glow {
+  position: absolute; z-index: -1; left: 50%; top: calc(50% + 3vh); width: min(110vmin, 1100px); aspect-ratio: 1; translate: -50% -50%;
+  border-radius: 50%; pointer-events: none; mix-blend-mode: screen; opacity: .7;
+  background: radial-gradient(closest-side, rgba(255, 218, 150, .5), rgba(226, 150, 48, .14) 48%, transparent);
+}
+.music__head { position: absolute; z-index: 2; top: calc(var(--nav-h) + 1vh); right: var(--pad); left: var(--pad); display: flex; justify-content: space-between; align-items: flex-end; gap: 24px }
+.music__title { margin: 0; font-weight: 600; font-size: clamp(38px, 4vw, 76px); line-height: 1.02; letter-spacing: -.03em; color: var(--text) }
+.music__sub { margin-top: 12px; font-size: clamp(15px, 1.2vw, 19px); color: var(--text-3) }
+
+.music__shelf { position: absolute; left: 0; right: 0; z-index: 1; top: calc(50% - var(--H) / 2 - 40px + 3vh); height: calc(var(--H) + 80px); perspective: 2200px; perspective-origin: 50% 50%; touch-action: pan-y }
+.music__stage { position: absolute; left: 50%; top: 50%; width: 0; height: 0; transform-style: preserve-3d }
+
+/* one album case: a zero-size 3D box with a spine (front) and a cover (right side) */
+.case { position: absolute; left: 0; top: 0; width: 0; height: 0; padding: 0; border: 0; background: none; transform-style: preserve-3d; will-change: transform }
+.case .face { position: absolute; top: calc(var(--h) / -2); height: var(--h); display: block; overflow: hidden; border-radius: 3px; backface-visibility: hidden; -webkit-backface-visibility: hidden }
+.case .face::after { content: ""; position: absolute; inset: 0; background: #000; opacity: var(--shade, 0); pointer-events: none }
+.case__sp {
+  width: var(--ws); left: calc(var(--ws) / -2); transform: translateZ(calc(var(--d) / 2));
+  background: linear-gradient(90deg, #0b0c10, #18191e 45%, #0d0e12);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .07);
+}
+.case__band { position: absolute; top: 0; left: 0; right: 0; height: 17%; display: block; background-color: var(--tint); background-image: var(--img); background-size: cover; background-position: var(--focus) 50%; box-shadow: inset 0 -1px 0 rgba(224, 175, 82, .5) }
+.case__t {
+  position: absolute; left: 50%; top: 58%; display: block; white-space: nowrap; translate: -50% -50%; rotate: 90deg;
+  font-weight: 800; font-size: calc(var(--ws) * .4); letter-spacing: .01em;
+  background: var(--gold); -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.case__m { position: absolute; bottom: 8px; left: 0; right: 0; display: block; text-align: center; font-size: clamp(7px, calc(var(--ws) * .16), 9px); font-weight: 700; letter-spacing: .18em; color: rgba(251, 246, 236, .55) }
+.case__cv {
+  width: var(--d); left: calc(var(--d) / -2); transform: rotateY(90deg) translateZ(calc(var(--ws) / 2));
+  background: #000; box-shadow: 0 40px 80px -30px rgba(0, 0, 0, .9), 0 0 0 1px rgba(224, 175, 82, .35);
+}
+.case__art { position: absolute; inset: 0; display: block; background-image: var(--img); background-size: cover; background-position: var(--focus) 50% }
+.case__sheen { position: absolute; inset: 0; display: block; background: linear-gradient(115deg, rgba(255, 255, 255, .16), transparent 34%, transparent 70%, rgba(255, 255, 255, .06)); pointer-events: none }
+
+.music__play {
+  position: absolute; z-index: 3; left: 0; top: 0; width: 60px; height: 60px; border-radius: 50%;
+  display: grid; place-items: center; background: var(--gold); color: var(--on-gold);
+  box-shadow: 0 14px 40px -10px rgba(224, 175, 82, .7); transform: translate(-50%, -50%) scale(0);
+}
+.music__play svg { width: 22px; height: 22px; fill: currentColor; margin-left: 3px }
+
+/* caption: every line rolls through its own mask */
+.music__cap { position: absolute; z-index: 2; left: 0; right: 0; top: calc(50% + var(--H) / 2 + 3vh + 24px); display: grid; justify-items: center; gap: 6px; pointer-events: none }
+.mask { position: relative; overflow: hidden; padding: .08em 0 .12em }
+.mask > span { display: block }
+.mask > span:not(:first-child) { position: absolute; inset: .08em 0 .12em }
+.music__cap .mask { width: min(92vw, 760px); text-align: center }
+.music__name { font-weight: 800; font-size: clamp(32px, 3vw, 50px); line-height: 1.1; letter-spacing: -.02em; color: var(--text) }
+
+.music__arrow {
+  position: absolute; z-index: 3; top: calc(50% + var(--H) / 2 + 3vh + 44px); width: 52px; height: 52px; border-radius: 50%;
+  display: grid; place-items: center; color: var(--text); border: 1px solid var(--hair);
+  transition: background-color .4s var(--ease-out), color .4s var(--ease-out), border-color .4s, opacity .3s;
+}
+.music__arrow:hover { background: var(--text); color: var(--on-gold); border-color: var(--text) }
+.music__arrow:disabled { opacity: .25; pointer-events: none }
+.music__arrow svg { width: 18px; height: 10px; fill: none; stroke: currentColor; stroke-width: 1.3; stroke-linecap: round; stroke-linejoin: round }
+.music__arrow--prev { right: calc(50% - min(380px, 30vw)) }
+.music__arrow--next { left: calc(50% - min(380px, 30vw)) }
+.music__count { position: absolute; z-index: 2; left: var(--pad); bottom: 5vh; font-weight: 600; font-size: 13px; letter-spacing: .18em; color: var(--text-3) }
+.music__idx { color: var(--gold-2) }
+
+/* =========================================================
+   PLATFORMS: a divider band of running logos
+   ========================================================= */
+.platforms {
+  position: relative; overflow: hidden; background: var(--bg-0);
+  padding: clamp(40px, 5vw, 84px) 0 clamp(44px, 5.4vw, 90px);
+  border-top: 1px solid color-mix(in srgb, var(--gold-2) 22%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--gold-2) 22%, transparent);
+}
+.platforms__title {
+  display: flex; align-items: center; justify-content: center; gap: 18px; margin: 0 0 clamp(24px, 2.8vw, 44px);
+  font-weight: 600; font-size: clamp(15px, 1.25vw, 20px); letter-spacing: .02em; color: var(--text-2); text-align: center;
+}
+.platforms__title::before, .platforms__title::after { content: ""; width: clamp(36px, 8vw, 150px); height: 1px; background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--gold-2) 70%, transparent)) }
+.platforms__title::after { transform: scaleX(-1) }
+.platforms__track { display: flex; width: max-content; will-change: transform }
+.platforms__group { display: flex; align-items: center; flex: none; gap: clamp(56px, 6.5vw, 120px); margin: 0; padding: 0 clamp(28px, 3.25vw, 60px); list-style: none }
+
+.plat { display: flex; align-items: center; gap: clamp(12px, 1.2vw, 20px); direction: ltr; color: var(--gold-2); transition: color .45s var(--ease-out), opacity .45s var(--ease-out), scale .6s var(--ease-spring) }
+/* the icon is the brand's mark used as a mask: gold by default, the brand's own colour on hover */
+.plat__icon { position: relative; flex: none; width: clamp(36px, 3.3vw, 58px); aspect-ratio: 1 }
+.plat__icon::before, .plat__icon::after {
+  content: ""; position: absolute; inset: 0;
+  -webkit-mask: var(--icon) center / contain no-repeat; mask: var(--icon) center / contain no-repeat;
+  transition: opacity .45s var(--ease-out);
+}
+.plat__icon::before { background: var(--gold) }
+.plat__icon::after { background: var(--brand); opacity: 0 }
+.plat__name { font-weight: 700; font-size: clamp(26px, 2.6vw, 46px); line-height: 1; letter-spacing: -.01em; white-space: nowrap }
+.platforms__viewport:hover .plat { opacity: .4 }
+.platforms__viewport .plat:hover, .plat:focus-visible { opacity: 1; color: var(--text); scale: 1.04 }
+.plat:hover .plat__icon::before, .plat:focus-visible .plat__icon::before { opacity: 0 }
+.plat:hover .plat__icon::after, .plat:focus-visible .plat__icon::after { opacity: 1 }
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+@media (max-width: 900px) {
+  :root { --nav-h: 68px; --pad: 20px }
+  .nav__brand { width: 64px }
+  .pill { height: 40px; padding: 0 16px; font-size: 14.5px }
+  .pill--line { padding-inline: 5px }
+  .nav__menu-label { display: none }
+  .burger { width: 30px; height: 30px }
+
+  /* Phone hero: big type in normal flow, the silhouette starts right under the buttons.
+     Heights use svh (the small, stable viewport) so Safari's collapsing address bar
+     never resizes the hero while scrolling. */
+  .hero { height: auto; min-height: 100svh; padding-bottom: 57svh }
+  .hero__bg { background: var(--hero-grad-m); height: 100% }
+  .hero__light { left: calc(50vw - var(--light-size) / 2); top: auto; bottom: calc(44svh - var(--light-size) / 2) }
+  .hero__content { position: relative; top: auto; right: auto; left: auto; width: auto; padding: calc(var(--nav-h) + 3svh) var(--pad) 0 }
+  .hero__title { font-size: clamp(40px, 13vw, 80px); line-height: 1.04 }
+  .hero__title .line__in { white-space: nowrap }            /* the mic stays beside its word */
+  .hero__lead { width: auto; font-size: clamp(17px, 4.5vw, 20px); line-height: 1.55; margin-top: 20px; color: var(--text-2) }
+  .hero__lead p + p { margin-top: .6em }
+  .hero__ctas { margin-top: 26px; gap: 10px }
+  .hero__ctas .btn { height: 56px; font-size: 17px; padding-inline: 26px }
+  .hero__ctas .btn--gold { padding-inline: 26px 7px }
+  .hero__ctas .btn__icon { width: 42px }
+  .hero__figure { height: 54svh; left: calc(50% - 20.4svh) }
+  /* the phone hero runs taller than the screen, so the hint is pinned to the foot of the first screen, over the figure */
+  .hero__scroll { left: 50%; bottom: auto; top: calc(100svh - 50px - env(safe-area-inset-bottom)); translate: -50% 0; font-size: 13px; white-space: nowrap }
+  .menu__inner { flex-direction: column; align-items: flex-start; justify-content: flex-end }
+
+  .moments__head { flex-direction: column; align-items: flex-start }
+  .mcard { width: min(68vw, 300px) }
+  .modal__frame { height: min(78svh, 680px, calc(92vw * 16 / 9)) }
+
+  /* music: a bigger case, fewer spines, swiped with a finger */
+  .music { --H: min(62vw, 36svh); min-height: 640px }
+  .music__head { flex-direction: column; align-items: flex-start; gap: 14px }
+  .music__shelf { top: calc(50% - var(--H) / 2 - 40px + 6svh) }
+  .music__cap { top: calc(50% + var(--H) / 2 + 6svh + 22px) }
+  .music__name { font-size: clamp(30px, 8.6vw, 40px) }
+  .music__arrow { top: calc(50% + var(--H) / 2 + 6svh + 30px); width: 46px; height: 46px }
+  .music__arrow--prev { right: 10px }
+  .music__arrow--next { left: 10px }
+  .music__count { bottom: 3svh }
+
+}
+
+/* moments on touch screens: a native swipe row instead of the pinned pan
+   (the script adds .moments--swipe; with a mouse the pan runs at any width) */
+.moments--swipe .moments__pin { height: auto; min-height: 0; padding: 12vh 0 10vh; gap: 28px }
+.moments--swipe .moments__viewport { overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; scrollbar-width: none; padding-bottom: 6px }
+.moments--swipe .moments__viewport::-webkit-scrollbar { display: none }
+.moments--swipe .mcard { scroll-snap-align: center }
+.moments--swipe .mcard__media img { left: 0; width: 100% }
+.moments--swipe .moments__progress { display: none }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition-duration: .01ms !important }
+}
+
+/* =========================================================
+   FROM THE STAGE (מהבמה): a 3D ring of clips + two doors
+   ========================================================= */
+.reel { position: relative; height: 100vh; height: 100svh; min-height: 720px; overflow: hidden; isolation: isolate; background: var(--bg-0) }
+.reel__lights { position: absolute; inset: 0; z-index: -2; width: 100%; height: 100%; pointer-events: none }
+.reel__glow {
+  position: absolute; z-index: -1; left: 50%; bottom: 6%; width: min(130vmin, 1300px); aspect-ratio: 2 / 1; translate: -50% 0;
+  border-radius: 50%; pointer-events: none; mix-blend-mode: screen; opacity: .5;
+  background: radial-gradient(closest-side, rgba(255, 218, 150, .42), rgba(226, 150, 48, .12) 50%, transparent);
+}
+/* the lit tile wall behind the title (js/tilewall.js); it fades in once ready and melts into the stage below */
+.reel__wall {
+  position: absolute; z-index: 0; top: 0; left: 0; width: 100%; height: 60%; pointer-events: none;
+  opacity: 0; transition: opacity 1.4s var(--ease-out);
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 55%, transparent 100%); mask-image: linear-gradient(to bottom, #000 0%, #000 55%, transparent 100%);
+}
+.reel.has-wall .reel__wall { opacity: 1 }
+.reel__head { position: absolute; z-index: 2; top: calc(var(--nav-h) + 3.5vh); right: var(--pad); left: var(--pad); text-align: center; pointer-events: none }
+/* a warm neon: the stage light in the wall seems to come through the letters */
+.reel__title {
+  display: inline-block; margin: 0; font-weight: 800; font-size: clamp(64px, 8.6vw, 164px); line-height: .95; letter-spacing: -.02em; color: #fff6e2;
+  text-shadow: 0 0 18px rgba(255, 196, 98, .85), 0 0 44px rgba(232, 164, 64, .5), 0 0 96px rgba(150, 92, 22, .6);
+}
+/* bold, bright, and set on a soft pool of dark so the beams crossing behind it never cut through the words */
+.reel__sub {
+  display: table; margin: clamp(10px, 1.2vw, 18px) auto 0; padding: .55em 1.8em;
+  font-size: clamp(17px, 1.45vw, 23px); font-weight: 700; color: var(--text);
+  background: radial-gradient(closest-side, rgba(6, 7, 9, .92), rgba(6, 7, 9, .7) 55%, rgba(6, 7, 9, 0));
+  text-shadow: 0 1px 2px rgba(0, 0, 0, .9), 0 0 14px rgba(0, 0, 0, .85);
+}
+/* perspective, perspective-origin and the card size are measured in JS (see main.js, FROM THE STAGE) */
+.reel__ring { position: absolute; inset: 0; z-index: 1; pointer-events: none }
+.reel__card {
+  position: absolute; left: 50%; top: var(--cy); width: var(--w); height: var(--h);
+  margin: calc(var(--h) / -2) 0 0 calc(var(--w) / -2); border-radius: 14px; overflow: hidden;
+  background: #0d0e12; backface-visibility: hidden; -webkit-backface-visibility: hidden; will-change: transform;
+  box-shadow: 0 26px 50px -12px rgba(0, 0, 0, .75);
+}
+.reel__card img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .9s var(--ease-out) }
+.reel__card.is-in img { opacity: 1 }
+.reel__card.is-broken img { display: none }
+.reel__card::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; box-shadow: inset 0 0 0 1px rgba(249, 227, 166, .16), inset 0 18px 30px rgba(255, 255, 255, .04) }
+.reel__shade { position: absolute; inset: 0; background: #050608; opacity: 0 }
+.reel__cats { position: absolute; z-index: 3; left: 0; right: 0; bottom: clamp(36px, 6.5vh, 76px); display: flex; justify-content: center; gap: clamp(12px, 1.2vw, 20px); padding: 0 var(--pad) }
+.reel__cat { height: clamp(56px, 4.4vw, 72px); font-size: clamp(17px, 1.35vw, 22px) }
+.reel__cat .btn__icon { width: calc(clamp(56px, 4.4vw, 72px) - 14px) }
+.reel__count { font-weight: 500; font-size: .78em; opacity: .7 }
+.reel__count:empty { display: none }
+/* each door carries a fan of its own clips, peeking up out of the button like cards from a pocket;
+   on hover the fan rises and opens. The button can't clip them, so its hover fill is a growing
+   background layer instead of the usual sliding ::before */
+.reel__cat {
+  overflow: visible;
+  background: linear-gradient(var(--text), var(--text)) 50% 100% / 100% 0 no-repeat, var(--gold);
+  transition: background-size .6s var(--ease-spring), color .5s var(--ease-out);
+}
+.reel__cat::before { display: none }
+.reel__cat:hover, .reel__cat:focus-visible { background-size: 100% 100%, auto }
+.reel__cat:has(.reel__stack) { padding-inline-start: 10px }
+.reel__stack { position: relative; flex: none; width: 74px; height: 100% }
+.reel__stack img {
+  position: absolute; bottom: 8px; left: 50%; width: 38px; aspect-ratio: 9 / 16; margin-left: -19px; object-fit: cover; border-radius: 7px;
+  transform-origin: 50% 100%; box-shadow: 0 0 0 1.5px rgba(10, 11, 14, .85), 0 8px 16px -6px rgba(0, 0, 0, .7);
+  transition: transform .7s var(--ease-spring);
+}
+.reel__stack img:nth-child(1) { transform: translateX(12px) rotate(11deg) }
+.reel__stack img:nth-child(2) { z-index: 1 }
+.reel__stack img:nth-child(3) { transform: translateX(-12px) rotate(-11deg) }
+.reel__cat:hover .reel__stack img:nth-child(1), .reel__cat:focus-visible .reel__stack img:nth-child(1) { transform: translate(20px, -6px) rotate(20deg) }
+.reel__cat:hover .reel__stack img:nth-child(2), .reel__cat:focus-visible .reel__stack img:nth-child(2) { transform: translateY(-12px) scale(1.06) }
+.reel__cat:hover .reel__stack img:nth-child(3), .reel__cat:focus-visible .reel__stack img:nth-child(3) { transform: translate(-20px, -6px) rotate(-20deg) }
+@media (max-width: 900px) {
+  .reel__head { top: calc(var(--nav-h) + 14px) }
+  .reel__title { font-size: clamp(60px, 19vw, 96px) }
+  .reel__cats { flex-direction: column; align-items: stretch; gap: 10px; bottom: max(26px, env(safe-area-inset-bottom)) }
+  .reel__cat { height: 60px; font-size: 18px; padding-inline: 24px 7px }
+  .reel__cat:has(.reel__stack) { padding-inline-start: 10px }
+  .reel__stack { width: 66px }
+  .reel__stack img { width: 34px; margin-left: -17px; bottom: 7px }
+  .reel__cat .btn__icon { width: 46px; margin-inline-start: auto }
+}
+
+/* =========================================================
+   LET'S TALK (בואו נדבר): the closing call, phone / WhatsApp / Instagram
+   ========================================================= */
+.cta {
+  position: relative; isolation: isolate; overflow: hidden; min-height: 100vh; min-height: 100svh;
+  display: flex; flex-direction: column; justify-content: space-between;
+  padding: calc(var(--nav-h) + 9vh) var(--pad) clamp(40px, 7vh, 90px);
+  background: var(--bg-0); border-top: 1px solid color-mix(in srgb, var(--gold-2) 16%, transparent);
+}
+.cta__lights { position: absolute; inset: 0; z-index: -2; width: 100%; height: 100%; pointer-events: none }
+/* the same warm stage light as the hero, behind his head */
+.cta__glow {
+  position: absolute; z-index: -1; width: 84vmax; height: 84vmax; border-radius: 50%; pointer-events: none;
+  left: calc(80vw - 42vmax); bottom: calc(75vh - 42vmax);
+  background: radial-gradient(closest-side, var(--light-a), var(--light-b) 48%, transparent);
+  mix-blend-mode: screen; opacity: calc(var(--light-o) * .9); animation: drift 14s ease-in-out infinite alternate;
+}
+/* the hero's silhouette again, mirrored: on the other side, turned toward the words */
+.cta__figure { position: absolute; z-index: -1; bottom: 0; right: calc(20vw - 33.3vh); height: 94vh; aspect-ratio: 501 / 664; pointer-events: none }
+.cta__figure img { width: 100%; height: 100%; transform: scaleX(-1) }
+/* the words and the ways in keep to the open side, across from him */
+.cta__title, .cta__links { width: min(52vw, 940px); margin-right: auto }
+.cta__title { margin-top: 0; margin-bottom: 0; font-weight: 800; font-size: clamp(56px, 6.9vw, 140px); line-height: .98; letter-spacing: -.03em; color: var(--text) }
+/* the gradient sits on the words alone (inline-block), so it spans the text, not the whole line */
+.cta__gold { display: inline-block; background: var(--gold); -webkit-background-clip: text; background-clip: text; color: transparent }
+.cta__links { position: relative; z-index: 0; display: grid; margin-top: clamp(40px, 7vh, 96px); border-bottom: 1px solid var(--hair) }
+.cta__item {
+  position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: clamp(14px, 1.4vw, 22px);
+  padding: clamp(14px, 1.4vw, 22px) 0; border-top: 1px solid var(--hair);
+}
+/* the way in, as an icon: gold at rest, its own brand colour on hover (like the platforms band) */
+.cta__icon {
+  width: clamp(46px, 3.6vw, 58px); aspect-ratio: 1; border-radius: 50%; display: grid; place-items: center;
+  color: var(--gold-2); border: 1px solid color-mix(in srgb, var(--gold-2) 45%, transparent);
+  transition: background-color .45s var(--ease-out), color .45s var(--ease-out), border-color .45s, scale .6s var(--ease-spring);
+}
+.cta__icon svg { width: 50%; height: 50% }
+.cta__item:hover .cta__icon, .cta__item:focus-visible .cta__icon { background: var(--brand); color: var(--brand-ink, #fff); border-color: transparent; scale: 1.06 }
+.cta__text { display: grid; gap: 3px; justify-items: start; min-width: 0 }
+/* a gold line runs along the top on hover, from the reading side */
+.cta__item::before {
+  content: ""; position: absolute; top: -1px; right: 0; width: 100%; height: 1px; background: var(--gold-2);
+  transform: scaleX(0); transform-origin: 100% 50%; transition: transform .8s var(--ease-spring);
+}
+.cta__label { font-size: clamp(13px, .95vw, 15px); font-weight: 600; color: var(--gold-2) }
+.cta__value { max-width: 100%; overflow-wrap: anywhere; font-size: clamp(21px, 1.9vw, 34px); font-weight: 600; line-height: 1.2; color: var(--text); transition: color .4s var(--ease-out) }
+.cta__arrow {
+  width: clamp(46px, 3.6vw, 58px); aspect-ratio: 1; border-radius: 50%;
+  display: grid; place-items: center; border: 1px solid var(--hair); color: var(--text);
+  transition: background-color .45s var(--ease-out), color .45s var(--ease-out), border-color .45s, translate .6s var(--ease-spring);
+}
+.cta__arrow svg { width: 40%; height: 40%; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round }
+.cta__item:hover::before, .cta__item:focus-visible::before { transform: none }
+.cta__item:hover .cta__value, .cta__item:focus-visible .cta__value { color: var(--gold-1) }
+.cta__item:hover .cta__arrow, .cta__item:focus-visible .cta__arrow { background: var(--gold); color: var(--on-gold); border-color: transparent; translate: -3px 3px }
+.cta__item:focus-visible { outline: none }
+.cta__item:active .cta__arrow { scale: .94 }
+@media (max-width: 900px) {
+  .cta { padding-top: calc(var(--nav-h) + 5vh) }
+  .cta__title, .cta__links { width: auto; margin-right: 0 }
+  .cta__title { font-size: clamp(50px, 14vw, 88px) }
+  /* he stands in the gap between the headline and the list, the list in front of his body */
+  .cta__figure { right: -14vw; height: 54svh }
+  .cta__glow { left: calc(62vw - 42vmax); bottom: calc(44svh - 42vmax) }
+  .cta__links { margin-top: 27svh }
+  .cta__links::before {
+    content: ""; position: absolute; z-index: -1; inset: -64px calc(-1 * var(--pad)) calc(-1 * clamp(40px, 7vh, 90px));
+    background: linear-gradient(to bottom, rgba(6, 7, 9, 0), rgba(6, 7, 9, .86) 64px);
+  }
+  .cta__item { gap: 14px; padding: 13px 0 }
+  .cta__icon { width: 46px }
+  .cta__value { font-size: clamp(19px, 5.6vw, 25px) }
+}
+
+/* =========================================================
+   FOOTER
+   ========================================================= */
+.footer {
+  display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px 32px;
+  padding: 22px var(--pad) max(22px, env(safe-area-inset-bottom));
+  background: var(--bg-0); border-top: 1px solid color-mix(in srgb, var(--gold-2) 16%, transparent);
+  font-size: 13.5px; letter-spacing: .02em; color: var(--text-3);
+}
+.footer__thanks { font-weight: 600; color: var(--gold-2) }
+@media (max-width: 700px) { .footer { flex-direction: column; justify-content: center; text-align: center; gap: 6px } }
+
+/* =========================================================
+   GALLERY PAGES (weddings, events): the clips from Cloudinary
+   ========================================================= */
+.subpage .nav::before { opacity: 1 }
+.subpage .pill--line { padding-inline: 20px }
+.gallery { position: relative; isolation: isolate; min-height: 100vh; min-height: 100svh; padding: calc(var(--nav-h) + clamp(24px, 5vh, 64px)) var(--pad) clamp(64px, 10vh, 120px) }
+/* a dim wash of stage light at the top of the page */
+.gallery::before {
+  content: ""; position: absolute; z-index: -1; inset: 0 0 auto; height: 90vh; pointer-events: none;
+  background: radial-gradient(55% 60% at 72% 0%, rgba(255, 206, 130, .16), transparent 70%), radial-gradient(40% 45% at 12% 8%, rgba(120, 96, 180, .1), transparent 70%);
+}
+.gallery__head { display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; margin-bottom: clamp(32px, 4.5vw, 64px) }
+.gallery__kicker { font-size: clamp(14px, 1.1vw, 17px); font-weight: 600; color: var(--gold-2) }
+.gallery__title { margin: 4px 0 0; font-weight: 800; font-size: clamp(56px, 8vw, 140px); line-height: .95; letter-spacing: -.03em; color: var(--text) }
+.gallery__count { font-size: clamp(15px, 1.2vw, 19px); color: var(--text-3); padding-bottom: .5em }
+.gallery__grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(clamp(170px, 15vw, 250px), 1fr)); gap: clamp(30px, 3vw, 52px) clamp(14px, 1.4vw, 24px) }
+.gallery__empty { margin-top: 24px; font-size: 17px; color: var(--text-3) }
+
+.clip-item { opacity: 0; translate: 0 26px; transition: opacity .9s var(--ease-out), translate 1.1s var(--ease-out) }
+.clip-item.is-in { opacity: 1; translate: none }
+.clip { display: block; width: 100%; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: right; cursor: pointer }
+.clip__media { position: relative; display: block; aspect-ratio: 9 / 16; border-radius: 16px; overflow: hidden; background: #0d0e12; box-shadow: 0 0 0 1px rgba(249, 227, 166, .12); transition: box-shadow .4s var(--ease-out) }
+.clip__media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: brightness(.86); transition: scale 1.1s var(--ease-out), filter .6s var(--ease-out) }
+.clip__media::after { content: ""; position: absolute; inset: 55% 0 0; background: linear-gradient(transparent, rgba(5, 6, 8, .45)); pointer-events: none }
+.clip__play {
+  position: absolute; z-index: 1; left: 50%; top: 50%; width: 64px; height: 64px; margin: -32px 0 0 -32px; border-radius: 50%;
+  display: grid; place-items: center; background: var(--gold); color: var(--on-gold);
+  opacity: 0; scale: .7; transition: opacity .4s var(--ease-out), scale .6s var(--ease-spring);
+}
+.clip__play svg { width: 24px; height: 24px; fill: currentColor; translate: 1px 0 }
+.clip:hover .clip__media img, .clip:focus-visible .clip__media img { scale: 1.05; filter: brightness(1) }
+.clip:hover .clip__play, .clip:focus-visible .clip__play { opacity: 1; scale: 1 }
+.clip:focus-visible { outline: none }
+.clip:focus-visible .clip__media { box-shadow: 0 0 0 2px var(--gold-2) }
+.clip:active .clip__media { scale: .985 }
+.clip__cap { display: block; margin-top: 14px }
+.clip__kicker { display: block; margin-bottom: 4px; font-size: 13.5px; font-weight: 600; color: var(--gold-2) }
+.clip__title { display: block; font-size: clamp(17px, 1.25vw, 21px); font-weight: 700; line-height: 1.25; color: var(--text) }
+.clip__credit { display: block; margin-top: 4px; font-size: 14px; line-height: 1.4; color: var(--text-3) }
+.clip__kicker:empty, .clip__credit:empty { display: none }
+/* phones have no hover: keep a small play mark on every card */
+@media (hover: none) { .clip__play { opacity: .9; scale: .72 } }
+
+/* while the list loads */
+.clip-item--ghost { opacity: 1; translate: none }
+.clip-item--ghost .clip__media { animation: ghost 1.6s ease-in-out infinite }
+.ghost-line { display: block; height: 14px; width: 70%; margin-top: 10px; border-radius: 7px; background: rgba(255, 255, 255, .06) }
+.ghost-line--short { width: 45% }
+@keyframes ghost { 50% { opacity: .55 } }
+
+.modal__player video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; background: #000 }
+
+@media (max-width: 600px) {
+  .gallery__head { flex-direction: column; align-items: flex-start; gap: 6px }
+  .gallery__count { padding-bottom: 0 }
+  .gallery__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 26px 12px }
+  .clip__media { border-radius: 12px }
+  .clip__cap { margin-top: 10px }
+  .clip__title { font-size: 16px }
+  .clip__kicker { font-size: 12.5px }
+  .clip__credit { font-size: 13px }
+}
+
+/* with reduced motion the platforms band stands still, centred */
+@media (prefers-reduced-motion: reduce) {
+  .platforms__track { width: auto }
+  .platforms__group { flex: 1; flex-wrap: wrap; justify-content: center; row-gap: 28px }
+}
