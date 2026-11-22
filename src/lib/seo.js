@@ -38,7 +38,8 @@ export const PAGES = [
 export const pageFor = path => PAGES.find(p => p.path === path) || PAGES[0];
 export const urlOf = path => SITE_URL + (path === '/' ? '/' : path);
 
-const OG_IMAGE = { url: `${SITE_URL}/og-image.jpg`, width: 1200, height: 630, alt: 'הצללית של אלעזר ביטון מול אור במה זהוב, לצד הלוגו והכיתוב זמר חתונות ואירועים' };
+// ?v=: WhatsApp and Facebook keep an image they've seen; a new number makes them fetch it again
+const OG_IMAGE = { url: `${SITE_URL}/og-image.jpg?v=2`, width: 1200, height: 630, alt: 'הצללית של אלעזר ביטון מול אור במה זהוב, לצד הלוגו והכיתוב זמר חתונות ואירועים' };
 
 // the contact details at build time; in the browser, the ones saved in /admin replace them
 const BUILD_CONTACT = DEFAULT_CONTACT;
